@@ -46,19 +46,19 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Define complete Prisma schema with all models (User, Account, Session, Team, Player, Squad, SquadPlayer, Matchday, Match, PlayerMatchStats, MatchdayPoints, SquadPlayerPoints, Transaction, League, LeagueMember) and enums (Position, MatchdayStatus, MatchStatus, TransactionType, TransactionStatus, LeagueStatus) in prisma/schema.prisma
-- [ ] T007 Generate Prisma client and run initial migration in prisma/migrations/
-- [ ] T008 [P] Create Prisma client singleton in src/lib/db.ts
-- [ ] T009 [P] Create shared TypeScript types and interfaces (Formation, PlayerFilters, SquadValidation, MatchdayView, LeaderboardEntry) in src/types/index.ts
-- [ ] T010 [P] Create formation definitions with position slot counts for all supported formations (4-3-3, 4-4-2, 3-5-2, 3-4-3, 4-5-1, 5-3-2, 5-4-1) in src/lib/formations.ts
+- [x] T006 Define complete Prisma schema with all models (User, Account, Session, Team, Player, Squad, SquadPlayer, Matchday, Match, PlayerMatchStats, MatchdayPoints, SquadPlayerPoints, Transaction, League, LeagueMember) and enums (Position, MatchdayStatus, MatchStatus, TransactionType, TransactionStatus, LeagueStatus) in prisma/schema.prisma
+- [x] T007 Generate Prisma client and run initial migration in prisma/migrations/
+- [x] T008 [P] Create Prisma client singleton in src/lib/db.ts
+- [x] T009 [P] Create shared TypeScript types and interfaces (Formation, PlayerFilters, SquadValidation, MatchdayView, LeaderboardEntry) in src/types/index.ts
+- [x] T010 [P] Create formation definitions with position slot counts for all supported formations (4-3-3, 4-4-2, 3-5-2, 3-4-3, 4-5-1, 5-3-2, 5-4-1) in src/lib/formations.ts
 - [x] T011 [P] Create stats provider interface (getTeams, getPlayers, getMatchStats, getPlayerRating) in src/providers/stats-provider.interface.ts
 - [x] T012 [P] Implement mock stats provider with hardcoded Argentine league data in src/providers/mock-stats-provider.ts
 - [x] T013 Create mock data JSON files (28 teams, 889 players from API-Football pipeline, 2 matchdays with 28 match results and 616 player stats) in src/mock-data/matches.json, src/mock-data/stats.json — teams/players read from data/processed/
-- [ ] T014 Create database seed script that loads mock data into Prisma (teams, players, matchdays, matches, player stats, demo users with pre-built squads) in prisma/seed.ts
-- [ ] T015 [P] Configure NextAuth.js v5 with Prisma adapter and Google OAuth provider (sole auth method for MVP) in src/lib/auth.ts
-- [ ] T016 [P] Create NextAuth API route handler in src/app/api/auth/[...nextauth]/route.ts
-- [ ] T017 [P] Create base API helper utilities (withAuth wrapper, error response builder, request validation) in src/lib/api-helpers.ts
-- [ ] T018 [P] Create Mercado Pago payment service interface and mock implementation (createPaymentLink, handleWebhook, getPaymentStatus) in src/services/payment.service.ts
+- [x] T014 Create database seed script that loads mock data into Prisma (teams, players, matchdays, matches, player stats, demo users with pre-built squads) in prisma/seed.ts
+- [x] T015 [P] Configure NextAuth.js v5 with Prisma adapter and Google OAuth provider (sole auth method for MVP) in src/lib/auth.ts
+- [x] T016 [P] Create NextAuth API route handler in src/app/api/auth/[...nextauth]/route.ts
+- [x] T017 [P] Create base API helper utilities (withAuth wrapper, error response builder, request validation) in src/lib/api-helpers.ts
+- [x] T018 [P] Create Mercado Pago payment service interface and mock implementation (createPaymentLink, handleWebhook, getPaymentStatus) in src/services/payment.service.ts
 
 **Checkpoint**: Foundation ready — user story implementation can now begin in parallel
 

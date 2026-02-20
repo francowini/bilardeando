@@ -1,0 +1,358 @@
+// Bilardeando — Fantasy Football for Argentine Liga Profesional
+// Prisma schema covering auth (NextAuth), game entities, payments, and leagues
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Enums ──
+
+enum Position {
+  GK
+  DEF
+  MID
+  FWD
+}
+
+enum MatchdayStatus {
+  OPEN
+  LOCK
+  LIVE
+  RESULTS
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+}
+
+enum TransactionType {
+  WALLET_LOAD
+  BUDGET_PURCHASE
+  SUBSTITUTION_FEE
+  LEAGUE_BUYIN
+  LEAGUE_PRIZE
+  LEAGUE_REFUND
+  AI_UNLOCK
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REFUNDED
+}
+
+enum LeagueStatus {
+  OPEN
+  ACTIVE
+  FINISHED
+  CANCELLED
+}
+
+// ── NextAuth.js Models ──
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  // Fantasy-specific fields
+  virtualBudget Float          @default(150) // in millions (e.g. 150 = $150M)
+  realBalance   Float          @default(0)   // ARS balance
+  aiUnlocked    Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // NextAuth relations
+  accounts      Account[]
+  sessions      Session[]
+
+  // Game relations
+  squads        Squad[]
+  matchdayPoints MatchdayPoints[]
+  transactions  Transaction[]
+  leagueMembers LeagueMember[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Game Data Models ──
+
+model Team {
+  id       Int      @id @default(autoincrement())
+  apiId    Int      @unique
+  name     String
+  code     String?
+  logo     String
+  founded  Int?
+  tier     Int      @default(2) // 1=top, 2=mid, 3=lower
+
+  // Venue info (flattened)
+  venueName     String?
+  venueCity     String?
+  venueCapacity Int?
+  venueImage    String?
+
+  players     Player[]
+  homeMatches Match[]  @relation("HomeTeam")
+  awayMatches Match[]  @relation("AwayTeam")
+}
+
+model Player {
+  id           Int      @id @default(autoincrement())
+  apiId        Int      @unique
+  name         String
+  photo        String
+  age          Int?
+  number       Int?
+  position     Position
+  fantasyPrice Float    // in millions (e.g. 8.5 = $8.5M)
+
+  // Season-level aggregate stats (from API or mock)
+  rating       Float?
+  appearances  Int      @default(0)
+  minutes      Int      @default(0)
+  goals        Int      @default(0)
+  assists      Int      @default(0)
+  yellowCards  Int      @default(0)
+  redCards     Int      @default(0)
+  hasRealStats Boolean  @default(false)
+
+  teamId Int
+  team   Team @relation(fields: [teamId], references: [id])
+
+  squadPlayers     SquadPlayer[]
+  playerMatchStats PlayerMatchStat[]
+
+  @@index([position])
+  @@index([teamId])
+}
+
+model Matchday {
+  id        Int            @id @default(autoincrement())
+  name      String         // e.g. "Fecha 1"
+  status    MatchdayStatus @default(OPEN)
+  startDate DateTime
+  endDate   DateTime
+
+  matches        Match[]
+  matchdayPoints MatchdayPoints[]
+
+  // League date range references
+  startingLeagues League[] @relation("LeagueStartMatchday")
+  endingLeagues   League[] @relation("LeagueEndMatchday")
+}
+
+model Match {
+  id        Int         @id @default(autoincrement())
+  homeScore Int         @default(0)
+  awayScore Int         @default(0)
+  status    MatchStatus @default(SCHEDULED)
+  kickoff   DateTime
+
+  matchdayId Int
+  matchday   Matchday @relation(fields: [matchdayId], references: [id])
+
+  homeTeamId Int
+  homeTeam   Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
+
+  awayTeamId Int
+  awayTeam   Team @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  playerMatchStats PlayerMatchStat[]
+
+  @@index([matchdayId])
+}
+
+model PlayerMatchStat {
+  id            Int   @id @default(autoincrement())
+  rating        Float // 0-10, the fantasy score source
+  minutesPlayed Int   @default(0)
+  goals         Int   @default(0)
+  assists       Int   @default(0)
+  yellowCards   Int   @default(0)
+  redCards      Int   @default(0)
+  saves         Int   @default(0)
+
+  playerId Int
+  player   Player @relation(fields: [playerId], references: [id])
+
+  matchId Int
+  match   Match @relation(fields: [matchId], references: [id])
+
+  @@unique([playerId, matchId])
+  @@index([matchId])
+}
+
+// ── Squad Models ──
+
+model Squad {
+  id        Int      @id @default(autoincrement())
+  formation String   @default("4-3-3") // e.g. "4-3-3", "4-4-2"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  squadPlayers SquadPlayer[]
+  squadPlayerPoints SquadPlayerPoints[]
+
+  @@index([userId])
+}
+
+model SquadPlayer {
+  id         Int     @id @default(autoincrement())
+  isStarter  Boolean @default(false)
+  isCaptain  Boolean @default(false)
+  isCaptainSub Boolean @default(false) // captain substitute
+
+  squadId Int
+  squad   Squad @relation(fields: [squadId], references: [id], onDelete: Cascade)
+
+  playerId Int
+  player   Player @relation(fields: [playerId], references: [id])
+
+  @@unique([squadId, playerId])
+  @@index([squadId])
+}
+
+// ── Scoring Models ──
+
+model MatchdayPoints {
+  id          Int   @id @default(autoincrement())
+  totalPoints Float @default(0)
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  matchdayId Int
+  matchday   Matchday @relation(fields: [matchdayId], references: [id])
+
+  squadPlayerPoints SquadPlayerPoints[]
+
+  @@unique([userId, matchdayId])
+  @@index([matchdayId])
+}
+
+model SquadPlayerPoints {
+  id         Int   @id @default(autoincrement())
+  rawPoints  Float @default(0) // rating from PlayerMatchStat
+  multiplier Float @default(1) // 1x starter, 0.5x bench, 2x captain
+  finalPoints Float @default(0) // rawPoints * multiplier
+
+  matchdayPointsId Int
+  matchdayPoints   MatchdayPoints @relation(fields: [matchdayPointsId], references: [id], onDelete: Cascade)
+
+  squadId Int
+  squad   Squad @relation(fields: [squadId], references: [id])
+
+  // We store playerId directly for easy querying even if squad changes later
+  playerId Int
+
+  @@index([matchdayPointsId])
+}
+
+// ── Payment Models ──
+
+model Transaction {
+  id              Int               @id @default(autoincrement())
+  type            TransactionType
+  status          TransactionStatus @default(PENDING)
+  amountArs       Float             // ARS amount
+  description     String?
+  mpPaymentId     String?           // Mercado Pago external payment ID
+  mpPreferenceId  String?           // Mercado Pago preference ID
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([mpPaymentId])
+}
+
+// ── League Models ──
+
+model League {
+  id          Int          @id @default(autoincrement())
+  name        String
+  code        String       @unique @default(cuid()) // shareable invite code
+  status      LeagueStatus @default(OPEN)
+  buyIn       Float        // ARS amount ($10k–$100k in $5k steps)
+  maxPlayers  Int          @default(20)
+  rakePercent Float        @default(5) // platform rake %
+  createdAt   DateTime     @default(now())
+
+  creatorId String // userId of creator
+
+  startMatchdayId Int
+  startMatchday   Matchday @relation("LeagueStartMatchday", fields: [startMatchdayId], references: [id])
+
+  endMatchdayId Int
+  endMatchday   Matchday @relation("LeagueEndMatchday", fields: [endMatchdayId], references: [id])
+
+  members LeagueMember[]
+
+  @@index([code])
+}
+
+model LeagueMember {
+  id       Int      @id @default(autoincrement())
+  paid     Boolean  @default(false)
+  joinedAt DateTime @default(now())
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  leagueId Int
+  league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, leagueId])
+  @@index([leagueId])
+}
