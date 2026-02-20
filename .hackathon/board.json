@@ -7,5 +7,14 @@
     "desc": "Documento de definicion del MVP del Gran DT",
     "started": "2026-02-20T20:18:30Z",
     "status": "done"
+  },
+  {
+    "feature": "mvp-plan",
+    "branch": "feat/mvp-plan",
+    "user": "player1",
+    "dir": "/home/player1/worktrees/mvp-plan",
+    "desc": "Implementation plan for Bilardeando MVP",
+    "started": "2026-02-20T21:29:11Z",
+    "status": "done"
   }
 ]
