@@ -17,6 +17,22 @@ Thumbs.db
 
 # Node
 node_modules/
+dist/
+build/
+*.log
+
+# Next.js
+.next/
+out/
+
+# Vercel
+.vercel
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.tmp
 
 # Other AI tool configs (not used in this project)
 .adal/
