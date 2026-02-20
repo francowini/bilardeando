@@ -25,6 +25,9 @@ build/
 .next/
 out/
 
+# Prisma generated client
+src/generated/
+
 # Vercel
 .vercel
 
