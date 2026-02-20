@@ -16,26 +16,64 @@ Fantasy football platform for Argentine football. Users build a squad, earn poin
 | Bench | 7 | 0.5x |
 | **Total** | **18** | |
 
-### Substitutions
+### Ownership & Budget
 
-- If a starter or bench player **did not play** in the matchday, the user can swap them out.
-- Each swap has a **cost** (microtransaction via Mercado Pago).
-- Free-tier users get a limited number of free swaps per matchday (TBD — e.g. 1 free).
+- **Shared ownership** — any user can pick any player; no exclusivity per league.
+- Each user has a **virtual budget** to build their squad.
+- Each real player has a **market value** (price).
+- Users must build their 18-player squad within the budget cap.
+- **Starting budget: $100M** (virtual currency, no relation to real money).
+- **Player values range: $1M–$15M** depending on quality/stats.
+- Users can **purchase additional budget with real money** via Mercado Pago.
+- Player values may fluctuate between matchdays based on performance (post-MVP refinement).
+
+### Captain
+
+- One starter is designated as **Captain** — earns **2x points** instead of 1x.
+- One starter is designated as **Captain Substitute** — inherits the 2x multiplier if the Captain did not play in the matchday.
+- Users choose Captain and Captain Substitute when setting their lineup (can change during OPEN phase).
+
+### Squad Building
+
+- **Free pick from catalog** — users browse/search all available players and add them to their squad within budget.
+- Users must select a **formation** (e.g., 4-3-3, 4-4-2, 3-5-2) that determines the required number of players per position (GK, DEF, MID, FWD).
+- The formation constrains starter slots; bench players fill remaining positions freely up to 18 total.
+- Squad is only valid when it matches the chosen formation and is within budget.
+- **Formation can be changed during OPEN phase** — must still have valid players for the new formation.
+
+### Substitutions (During Matchday)
+
+- Once a matchday starts (LOCK), **formation is frozen** and no external transfers allowed.
+- Bench players **always score at 0.5x** — they contribute points regardless of substitution.
+- A user may pay to **swap a starter with a bench player of the same position** (e.g., DEF ↔ DEF) only if **both** players' matches have **not yet begun**.
+- The swapped-in player becomes starter (1x), the swapped-out goes to bench (0.5x).
+- **All substitutions cost $2,000 ARS** (fixed fee, paid via Mercado Pago) — no free subs for any tier.
+- Same-position constraint keeps the formation intact during the matchday.
+
+### Transfers (OPEN Phase)
+
+- During the **OPEN phase** (between matchdays), users can freely buy/sell players from the catalog within their budget.
+- **Sell tax: 10%** — when selling a player, the user recovers 90% of the player's current market value. Prevents risk-free player flipping.
 
 ### Scoring
 
-- Points come from the **stats provider API** (goals, assists, clean sheets, cards, saves, etc.).
-- A **scoring engine** processes raw stats into fantasy points.
+- Points come **directly from the stats provider API** — the API provides a per-player match rating/score.
+- **No custom scoring engine** — the platform consumes the API's player scores as-is (starters at 1x, bench at 0.5x).
 - Scores update **when a match ends** (not real-time during the match).
+- The stats API must provide a **numeric player rating per match** (not just raw stats).
 
 ### Matchday lifecycle
 
 ```
-1. LOCK     — Lineups lock at kickoff of the first match of the matchday
+1. LOCK     — First match kicks off → squad, formation, captain ALL frozen
 2. LIVE     — Matches in progress (no changes allowed)
-3. RESULTS  — Matches end → scoring engine runs → points assigned
-4. OPEN     — Transfer/swap window opens for next matchday
+3. RESULTS  — Last match ends → scores ingested from API → points assigned
+4. OPEN     — Window opens: sell players (10% tax), buy budget with
+              real money, buy new players, change formation, set captain
 ```
+
+- **LOCK→RESULTS**: the only permitted action is a paid same-position swap (starter ↔ bench) if both players' matches haven't started. Formation stays frozen.
+- **OPEN phase ends** when the first match of the next matchday kicks off (returns to LOCK).
 
 ---
 
@@ -48,9 +86,18 @@ Fantasy football platform for Argentine football. Users build a squad, earn poin
 - **No AI features** for free users.
 
 ### Private Leagues (Paid)
-- Users create private leagues and invite friends.
-- **Minimum buy-in required** (collected via Mercado Pago).
-- Prize pool distributed to top N at end of tournament.
+- Users create private leagues and invite friends via **shareable link** (e.g., bilardeando.com/liga/abc123) — easy to paste in WhatsApp groups.
+- **Buy-in: $10,000 to $100,000 ARS** per player, in **$5,000 steps** (creator selects).
+- **Platform rake**: percentage taken from total pool before distribution (exact % TBD, e.g. 5-10%).
+- **League size: 3–20 players.**
+- **Poker-style prize distribution** — top-heavy, more positions paid as league size grows:
+  - 3–6 players: pays top 1–2
+  - 7–15 players: pays top 3
+  - 16–20 players: pays top 4
+  - 1st place always gets the largest share.
+- **League timing**: creator selects a **start matchday** and **end matchday**. The league can only start on a matchday that hasn't begun yet. Points accumulate only within that range.
+- All players must join and pay before the start matchday locks.
+- **If fewer than 3 players by start matchday lock**: league is **auto-cancelled** and all buy-ins are **fully refunded** (no rake taken).
 - Private leaderboard.
 
 ### Future Feature (not MVP)
@@ -66,14 +113,15 @@ Fantasy football platform for Argentine football. Users build a squad, earn poin
 | Join general tournament | Yes |
 | Build & manage squad | Yes |
 | View leaderboard | Yes |
-| Limited free swaps per matchday | Yes |
+| Bench players score at 0.5x | Yes |
 | Basic matchday results via WhatsApp | Yes |
 | AI features | **No** |
 
 ### Paid / Microtransactions
 | Feature | Payment model |
 |---|---|
-| Extra swaps (when player didn't play) | Per-swap fee |
+| Bench→starter substitution (promote to 1x) | Per-sub fee |
+| Additional squad budget | Direct purchase via MP |
 | AI assistant (injury alerts, recommendations) | Pay to unlock |
 | Private league creation | Minimum buy-in |
 | Service fee waiver | Load $20,000+ ARS → fee waived, balance usable for bets |
@@ -98,7 +146,7 @@ Fantasy football platform for Argentine football. Users build a squad, earn poin
 | View my squad | Yes | Yes |
 | View matchday scores | Yes | Yes |
 | View leaderboard position | Yes | Yes |
-| Make a swap | Yes (limited) | Yes (paid extras) |
+| Make a substitution (paid) | Yes | Yes |
 | AI: Injury alert + swap suggestion | No | Yes |
 | AI: Matchday predictions | No | Yes |
 | AI: "Who should I pick?" advice | No | Yes |
@@ -195,12 +243,34 @@ For the hackathon presentation, we need:
 2. **Mock matchday simulation** — trigger a "matchday end" that calculates scores.
 3. **WhatsApp bot demo** — show interactive squad management + AI tip.
 4. **Mercado Pago flow** — show a swap purchase with real (sandbox) payment link.
-5. **Scoring engine** — demonstrate points calculation from mock stats.
+5. **Scoring flow** — demonstrate ingesting player ratings from API (or mock) and computing squad totals.
 
 ### Data mocks needed
 - 4 teams, ~80 players with stats.
 - 2 simulated matchdays with results.
 - Pre-built squads for demo users.
+
+---
+
+## Clarifications
+
+### Session 2026-02-20
+
+- Q: Can multiple users have the same player, or is ownership exclusive per league? → A: Shared — any user can pick any player. Additionally, users have a budget and every player has a market value.
+- Q: How do users initially build their squad? → A: Free pick from catalog, constrained by a chosen formation (e.g., 4-3-3). Users can also purchase additional budget with real money.
+- Q: What can users change in their squad between/during matchdays? → A: During matchday (LOCK onwards), squad is frozen — only bench→starter substitutions for non-playing starters. During OPEN phase, free transfers within budget.
+- Q: How many free substitutions per matchday? → A: Zero — all substitutions are paid. Bench always scores at 0.5x. Paid sub promotes bench→starter (1x) only if both matches haven't started.
+- Q: What is the starting budget and player value range? → A: $100M virtual budget, players valued $1M–$15M.
+- Q: How are fantasy points calculated? → A: No custom scoring engine — use an external API that provides direct player ratings per match. Platform consumes scores as-is.
+- Q: When selling a player, does the user recover full value? → A: No — 10% sell tax. User recovers 90% of current market value.
+- Q: Is there a captain mechanic? → A: Yes — Captain (2x) + Captain Substitute (inherits 2x if captain didn't play). No vice-captain bonus.
+- Q: How do private league buy-ins and prizes work? → A: Buy-in $10k–$100k ARS in $5k steps. Poker-style prize distribution (top-heavy, scales with league size). Platform takes a rake.
+- Q: Can users change formation between matchdays? → A: Yes during OPEN. During matchday, formation is frozen but same-position swaps (starter ↔ bench) allowed if both matches haven't started — costs real money.
+- Q: What does a mid-matchday substitution cost? → A: Fixed fee of $2,000 ARS per swap.
+- Q: How do users invite friends to private leagues? → A: Shareable link (URL) that can be sent via WhatsApp, social media, etc.
+- Q: Min/max players in a private league? → A: 3 to 20.
+- Q: When does a private league start? → A: At the next not-yet-started matchday. Creator sets start and end matchday. All players must join before start matchday locks.
+- Q: What if a private league doesn't reach 3 players? → A: Auto-cancel + full refund, no rake taken.
 
 ---
 
