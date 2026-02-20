@@ -1,5 +1,22 @@
 <!--
 Sync Impact Report
+- Version change: 1.0.1 → 1.1.0 (MINOR — retro ESPN 2003 aesthetic,
+  desktop-first layout, auth simplification, rake percentage)
+- Modified: Principle I (visual identity overhaul + desktop-first),
+  no principle additions or removals
+- Principle I changes:
+  - "Mobile-first responsive" → "Desktop-first responsive"
+  - Added retro ESPN/Yahoo Sports 2003 aesthetic direction
+  - Updated typography: added Barlow Condensed / Teko for headers
+  - Added retro-specific rules: thick borders, beveled buttons, dense
+    tables, alternating row colors, minimal border-radius
+  - Updated rationale to reference ESPN 2003 era
+- Templates requiring updates: none (templates reference constitution
+  dynamically)
+- Follow-up TODOs: update CLAUDE.md design guidelines, update tasks.md
+  T002 theme description
+
+Previous report (v1.0.1):
 - Version change: 1.0.0 → 1.0.1 (PATCH — rename project from Gran DT to
   Bilardeando to avoid copyright issues)
 - Modified: Project name in title, governance section
@@ -34,26 +51,41 @@ Previous report (v1.0.0):
 
 ## Core Principles
 
-### I. Sports-First UX
+### I. Sports-First UX — Retro ESPN 2003
 
-Every interface MUST feel like a real sports app — clean, data-rich, and fast.
+Every interface MUST feel like a classic early-2000s sports portal —
+dense, data-rich, and unapologetically retro.
 
-- Visual identity MUST use a football-inspired palette: deep greens
-  (pitch), white, dark accents. Generic purple/blue AI gradients are
-  prohibited.
-- Typography MUST be bold and sporty (Outfit, Sora, or DM Sans). Generic
-  Inter/Roboto is prohibited.
-- Layout MUST be card-based, dashboard-style. Mobile-first responsive.
-- Football conventions MUST be followed: formation layouts (4-3-3, 4-4-2),
-  pitch visualizations, player cards with photos and stats.
-- Loading states MUST use skeleton screens, never spinners.
-- Data MUST be scannable — no tiny text on stats, tables must be readable.
-- "AI slop" aesthetics (pastel gradients, rounded everything, no
-  personality) are explicitly banned.
+- **Aesthetic**: The visual direction is **ESPN / Yahoo Sports circa 2003**
+  — thick borders, beveled buttons, dense data tables, tab navigation,
+  heavy grid lines. NOT modern minimalism.
+- **Colors**: MUST use a football-inspired palette: dark green (#1a472a)
+  for headers and nav, gold/amber (#c5a000) for accents and highlights,
+  white (#ffffff) for backgrounds, dark gray (#333333) for body text.
+  Generic purple/blue AI gradients are prohibited.
+- **Typography**: Headers MUST use a bold condensed sans-serif (Barlow
+  Condensed, Teko, or Oswald). Body text MUST use DM Sans or a similarly
+  readable sans-serif. Generic Inter/Roboto is prohibited.
+- **Borders & surfaces**: Elements MUST have thick visible borders (2–3px
+  solid). Buttons MUST use beveled/outset border styles. Tables MUST have
+  visible grid lines and alternating row colors. Border-radius MUST be
+  minimal (0–2px max) — no pill shapes or heavy rounding.
+- **Layout**: MUST be desktop-first responsive. Dense, multi-column where
+  data allows. Card-based with bordered header bars (colored background).
+  Tab-style navigation.
+- **Football conventions**: Formation layouts (4-3-3, 4-4-2), pitch
+  visualizations, player cards with photos and stats MUST be followed.
+- **Loading states**: MUST use skeleton screens, never spinners.
+- **Data density**: Data MUST be scannable — no tiny text on stats, tables
+  must be readable with heavy borders and clear column headers.
+- **Banned aesthetics**: "AI slop" (pastel gradients, rounded everything,
+  no personality), modern minimalism (thin hairline borders, excessive
+  whitespace), and generic SaaS dashboards are explicitly prohibited.
 
-**Rationale**: This is a sports product. Users expect the energy and
-information density of ESPN, FotMob, or Sofascore — not a generic SaaS
-dashboard.
+**Rationale**: This is a sports product with a retro identity. Users
+should feel the energy of early-2000s ESPN, Yahoo Sports, or Fox Sports —
+when sports sites were dense, data-forward, and unapologetically bold.
+The vintage aesthetic is a deliberate design choice, not a limitation.
 
 ### II. Security First (NON-NEGOTIABLE)
 
@@ -177,4 +209,4 @@ principles defined here.
 - **Conflict resolution**: When a spec or plan conflicts with this
   constitution, the constitution wins. Update the downstream document.
 
-**Version**: 1.0.1 | **Ratified**: 2026-02-20 | **Last Amended**: 2026-02-20
+**Version**: 1.1.0 | **Ratified**: 2026-02-20 | **Last Amended**: 2026-02-20

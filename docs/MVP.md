@@ -88,7 +88,7 @@ Fantasy football platform for Argentine football. Users build a squad, earn poin
 ### Private Leagues (Paid)
 - Users create private leagues and invite friends via **shareable link** (e.g., bilardeando.com/liga/abc123) — easy to paste in WhatsApp groups.
 - **Buy-in: $10,000 to $100,000 ARS** per player, in **$5,000 steps** (creator selects).
-- **Platform rake**: percentage taken from total pool before distribution (exact % TBD, e.g. 5-10%).
+- **Platform rake**: **5%** taken from total pool before prize distribution.
 - **League size: 3–20 players.**
 - **Poker-style prize distribution** — top-heavy, more positions paid as league size grows:
   - 3–6 players: pays top 1–2
@@ -121,7 +121,7 @@ Fantasy football platform for Argentine football. Users build a squad, earn poin
 | Feature | Payment model |
 |---|---|
 | Bench→starter substitution (promote to 1x) | Per-sub fee |
-| Additional squad budget | Direct purchase via MP |
+| Additional squad budget | Direct purchase via MP ($5M virtual = $1,000 ARS, $10M = $1,800 ARS, $20M = $3,000 ARS) |
 | AI assistant (injury alerts, recommendations) | Pay to unlock |
 | Private league creation | Minimum buy-in |
 | Service fee waiver | Load $20,000+ ARS → fee waived, balance usable for bets |
@@ -225,13 +225,15 @@ Fantasy football platform for Argentine football. Users build a squad, earn poin
 
 **Desktop-first** — WhatsApp covers the mobile experience.
 
+**Visual style**: Retro ESPN / Yahoo Sports circa 2003 — dense data tables, thick borders, beveled buttons, tab navigation, gold/green palette. See constitution Principle I for full guidelines.
+
 ---
 
 ## 9. Authentication
 
-- **Phone number (WhatsApp)** as primary identity.
-- OTP verification via WhatsApp.
-- Optional: Google OAuth as secondary login for web.
+- **Google OAuth** as the sole login method for MVP.
+- Phone/WhatsApp OTP is deferred to post-MVP (simplifies auth stack).
+- Users are identified by their Google account email.
 
 ---
 

@@ -17,27 +17,37 @@ This is a **fantasy football (soccer)** application. Think of it like fantasy Pr
 - **Deploy**: Vercel
 - **Language**: TypeScript
 
-## Design Guidelines
+## Design Guidelines — Retro ESPN 2003
 
 ### Visual Identity
-- **Theme**: Sports/football — clean, modern, data-driven
-- **Colors**: Use a football-inspired palette — deep greens (pitch), white, dark accents. Avoid generic purple/blue AI gradients
-- **Typography**: Bold, sporty — use a distinctive sans-serif (e.g., Outfit, Sora, DM Sans). Avoid generic Inter/Roboto
-- **Layout**: Card-based, dashboard-style for stats and lineups. Mobile-first
+- **Theme**: Retro sports portal — ESPN / Yahoo Sports circa 2003. Dense, data-forward, unapologetically bold
+- **Colors**: Dark green `#1a472a` (headers/nav), gold/amber `#c5a000` (accents/highlights), white `#ffffff` (backgrounds), dark gray `#333333` (body text). NO pastel gradients, NO purple/blue AI gradients
+- **Typography**: Headers use **Barlow Condensed** or **Teko** (bold, condensed, sporty). Body uses **DM Sans**. Avoid generic Inter/Roboto
+- **Layout**: Desktop-first responsive. Dense multi-column layouts. Card-based with bordered header bars. Tab-style top navigation
+- **Borders**: Thick 2–3px solid borders on everything. Beveled/outset buttons. Visible table grid lines. Alternating row colors on data tables. Border-radius: 0–2px max (no pill shapes)
 - **Icons**: Use Lucide icons. Football-specific elements where needed (pitch diagrams, jersey icons, etc.)
 
 ### UX Principles
-- Fast, responsive — no loading spinners where avoidable (use skeletons)
-- Data-dense but readable — tables, stats, player cards
-- Touch-friendly — big tap targets, swipe gestures for mobile
+- Fast, responsive — no loading spinners (use skeletons)
+- Data-dense but readable — heavy-bordered tables, stats, player cards
+- Scannable data — big bold headers, clear column labels, alternating row colors
 - Real-time feel — optimistic updates, live scores
 - Football conventions — formation layouts (4-3-3, 4-4-2), pitch visualizations, player cards with photos and stats
 
+### Retro Elements to Embrace
+- Beveled/outset buttons with thick borders
+- Tab-bar navigation with active tab highlight
+- Header bars with colored backgrounds (dark green or gold)
+- Dense, newspaper-column style layouts for stats
+- Visible grid lines on all data tables
+- Subtle CSS gradients on header bars (Web 2.0 style, not flat)
+
 ### Avoid
+- Modern minimalism (thin hairline borders, excessive whitespace, pill buttons)
 - Generic "AI slop" aesthetics (pastel gradients, rounded everything, no personality)
-- Overly decorative design — keep it functional and sporty
 - Heavy animations that slow the experience
 - Tiny text on stats — data should be scannable
+- Rounded corners beyond 2px — keep it blocky and retro
 
 ## Multi-Claude Coordination
 

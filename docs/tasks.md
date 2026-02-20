@@ -33,9 +33,9 @@
 **Purpose**: Initialize the Next.js project, install dependencies, create directory structure
 
 - [ ] T001 Initialize Next.js 14 project with TypeScript, Tailwind CSS, and App Router in project root
-- [ ] T002 Install and configure shadcn/ui with football-inspired theme (deep greens, white, dark accents) in tailwind.config.ts and src/app/globals.css
+- [ ] T002 Install and configure shadcn/ui with retro ESPN 2003 theme: dark green (#1a472a), gold (#c5a000), white, dark gray (#333). Thick 2-3px borders, 0-2px border-radius, beveled button styles, alternating table row colors in tailwind.config.ts and src/app/globals.css
 - [ ] T003 [P] Install core dependencies: next-auth @auth/prisma-adapter prisma @prisma/client mercadopago lucide-react in package.json
-- [ ] T004 [P] Create .env.example with placeholders for DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, MERCADOPAGO_ACCESS_TOKEN, MERCADOPAGO_PUBLIC_KEY, API_FOOTBALL_KEY in .env.example
+- [ ] T004 [P] Create .env.example with placeholders for DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, MERCADOPAGO_ACCESS_TOKEN, MERCADOPAGO_PUBLIC_KEY, API_FOOTBALL_KEY, ANTHROPIC_API_KEY in .env.example
 - [ ] T005 [P] Create project directory structure: src/services/, src/providers/, src/components/{ui,player,squad,matchday,leaderboard,transfers,leagues,wallet}, src/lib/, src/types/, src/mock-data/, prisma/
 
 ---
@@ -55,7 +55,7 @@
 - [ ] T012 [P] Implement mock stats provider with hardcoded Argentine league data in src/providers/mock-stats-provider.ts
 - [ ] T013 Create mock data JSON files (4 teams, ~80 players with positions/values/ratings, 2 matchdays with match results and player stats) in src/mock-data/teams.json, src/mock-data/players.json, src/mock-data/matches.json, src/mock-data/stats.json
 - [ ] T014 Create database seed script that loads mock data into Prisma (teams, players, matchdays, matches, player stats, demo users with pre-built squads) in prisma/seed.ts
-- [ ] T015 [P] Configure NextAuth.js v5 with Prisma adapter, credentials provider (phone), and Google OAuth provider in src/lib/auth.ts
+- [ ] T015 [P] Configure NextAuth.js v5 with Prisma adapter and Google OAuth provider (sole auth method for MVP) in src/lib/auth.ts
 - [ ] T016 [P] Create NextAuth API route handler in src/app/api/auth/[...nextauth]/route.ts
 - [ ] T017 [P] Create base API helper utilities (withAuth wrapper, error response builder, request validation) in src/lib/api-helpers.ts
 - [ ] T018 [P] Create Mercado Pago payment service interface and mock implementation (createPaymentLink, handleWebhook, getPaymentStatus) in src/services/payment.service.ts
@@ -66,22 +66,22 @@
 
 ## Phase 3: User Story 1 — Auth & User Setup (Priority: P1)
 
-**Goal**: Users can register with phone number or Google OAuth, login, view/edit their profile
+**Goal**: Users can login with Google OAuth, view/edit their profile
 
-**Independent Test**: Navigate to /login, sign in with Google or phone, see profile page with user info and $100M starting budget
+**Independent Test**: Navigate to /login, sign in with Google, see profile page with user info and $100M starting budget
 
 ### Implementation for User Story 1
 
 - [ ] T019 [P] [US1] Create SessionProvider wrapper component in src/components/providers/session-provider.tsx
-- [ ] T020 [US1] Add SessionProvider and sporty font (Outfit or DM Sans) to root layout in src/app/layout.tsx
+- [ ] T020 [US1] Add SessionProvider and retro fonts (Barlow Condensed for headers, DM Sans for body) to root layout in src/app/layout.tsx
 - [ ] T021 [P] [US1] Create landing page with hero section, app description, and CTA to login in src/app/page.tsx
-- [ ] T022 [P] [US1] Create login page with phone number input and Google OAuth button in src/app/(auth)/login/page.tsx
+- [ ] T022 [P] [US1] Create login page with Google OAuth button (sole auth method for MVP) in src/app/(auth)/login/page.tsx
 - [ ] T023 [US1] Create auth middleware to protect /squad, /matchday, /leaderboard, /transfers, /leagues, /wallet, /profile routes in src/middleware.ts
 - [ ] T024 [US1] Create app shell layout with top navigation bar (Squad, Matchday, Leaderboard, Transfers, Leagues, Wallet, Profile links) and user menu in src/app/(dashboard)/layout.tsx
-- [ ] T025 [P] [US1] Create user profile page showing name, phone, email, virtual budget, real balance, and account creation date in src/app/(dashboard)/profile/page.tsx
+- [ ] T025 [P] [US1] Create user profile page showing name, email, virtual budget, real balance, and account creation date in src/app/(dashboard)/profile/page.tsx
 - [ ] T026 [US1] Create user profile API route (GET current user, PATCH update name/email) in src/app/api/user/route.ts
 
-**Checkpoint**: User can register, login, see navigation, view profile with $100M budget
+**Checkpoint**: User can login with Google, see navigation, view profile with $100M budget
 
 ---
 
@@ -104,7 +104,7 @@
 - [ ] T035 [US2] Create squad API routes (GET current squad, POST create squad, PUT update squad, PUT set formation) in src/app/api/squad/route.ts
 - [ ] T036 [US2] Create squad player API routes (POST add player, DELETE remove player, PATCH set captain/captainSub/starter) in src/app/api/squad/players/route.ts
 - [ ] T037 [US2] Create squad builder page composing catalog, formation selector, pitch view, bench list, and budget bar in src/app/(dashboard)/squad/page.tsx
-- [ ] T038 [US2] Add squad validation logic: enforce formation slot counts, budget cap, max 18 players, exactly 1 captain, exactly 1 captain sub in src/services/squad.service.ts
+- [ ] T038 [US2] Add strict squad validation logic to squad.service.ts: enforce formation slot counts per position, budget cap ($100M), max 18 players, exactly 1 captain, exactly 1 captain sub, no duplicate players. This extends T033's stubs with full validation rules
 
 **Checkpoint**: User can build a complete, valid squad with formation, captain, and budget management
 
@@ -183,9 +183,12 @@
 - [ ] T062 [P] [US6] Create transaction history table component in src/components/wallet/transaction-history.tsx
 - [ ] T063 [US6] Create wallet API routes (GET balance + transactions, POST load balance request) in src/app/api/wallet/route.ts
 - [ ] T064 [US6] Create Mercado Pago webhook handler (POST receive payment notifications, update transaction status, credit user balance) in src/app/api/webhooks/mercadopago/route.ts
-- [ ] T065 [US6] Create wallet page composing balance card, load balance flow, and transaction history in src/app/(dashboard)/wallet/page.tsx
+- [ ] T065 [US6] Create wallet page composing balance card, load balance flow, budget purchase, and transaction history in src/app/(dashboard)/wallet/page.tsx
+- [ ] T090 [P] [US6] Create virtual budget purchase service with tiered pricing ($5M = $1,000 ARS, $10M = $1,800 ARS, $20M = $3,000 ARS), MP payment link generation, and budget credit after webhook confirmation in src/services/budget-purchase.service.ts
+- [ ] T091 [US6] Create budget purchase API route (GET available tiers, POST create purchase with MP payment link) in src/app/api/wallet/budget/route.ts
+- [ ] T092 [P] [US6] Create budget purchase UI component showing tier options with prices and buy buttons in src/components/wallet/budget-purchase.tsx
 
-**Checkpoint**: User can load balance via MP, see transactions, service fee waiver at $20k+
+**Checkpoint**: User can load balance via MP, purchase additional virtual budget, see transactions, service fee waiver at $20k+
 
 ---
 
@@ -206,7 +209,7 @@
 - [ ] T072 [US7] Create league join API route (POST join league, generate MP payment link for buy-in) in src/app/api/leagues/[code]/join/route.ts
 - [ ] T073 [US7] Create leagues list page showing my leagues and create league option in src/app/(dashboard)/leagues/page.tsx
 - [ ] T074 [US7] Create league detail page with leaderboard, invite link copy, and member list in src/app/(dashboard)/leagues/[code]/page.tsx
-- [ ] T075 [US7] Implement poker-style prize distribution logic (3–6: top 1–2, 7–15: top 3, 16–20: top 4) in src/services/league.service.ts
+- [ ] T075 [US7] Implement poker-style prize distribution logic with 5% platform rake deducted before distribution (3–6: top 1–2, 7–15: top 3, 16–20: top 4) in src/services/league.service.ts
 - [ ] T076 [US7] Implement auto-cancel logic: if <3 paid members by start matchday LOCK, refund all buy-ins and set status CANCELLED in src/services/league.service.ts
 
 **Checkpoint**: Users can create/join paid leagues, see league leaderboard, auto-cancel works
@@ -227,8 +230,9 @@
 - [ ] T080 [US8] Create WhatsApp webhook API route (POST receive messages, parse intent, dispatch to handler, send response) in src/app/api/webhooks/whatsapp/route.ts
 - [ ] T081 [US8] Implement AI recommendation handler using Claude API with guardrails (only fantasy-football queries, predefined intents, reject off-topic) in src/services/bot/ai-handler.ts
 - [ ] T082 [US8] Create bot configuration with intent patterns and response templates in src/services/bot/bot-config.ts
+- [ ] T089 [US8] Add AI paywall check: verify user has paid for AI features before dispatching to ai-handler, return upgrade prompt for free users in src/services/bot/intent-handlers.ts
 
-**Checkpoint**: WhatsApp bot responds to squad/score/leaderboard queries, AI tips work for paid users
+**Checkpoint**: WhatsApp bot responds to squad/score/leaderboard queries, AI tips work for paid users only
 
 ---
 
@@ -239,7 +243,7 @@
 - [ ] T083 [P] Add loading skeleton components for squad, matchday, leaderboard, wallet pages in src/components/ui/skeletons.tsx
 - [ ] T084 [P] Add empty state components (no squad yet, no matchdays yet, no leagues yet) in src/components/ui/empty-states.tsx
 - [ ] T085 [P] Add error boundary and toast notification system in src/components/ui/error-boundary.tsx
-- [ ] T086 Responsive design pass for all pages — desktop-first layout with readable data tables and scannable stats
+- [ ] T086 Responsive design pass for all pages — desktop-first layout (min 1024px), retro ESPN aesthetic consistency check: thick borders, beveled buttons, alternating row colors, tab nav. Ensure data tables are readable at 1024px+ and degrade gracefully at 768px
 - [ ] T087 Create demo seed + simulation script: seeds DB, creates demo users with squads, simulates 2 matchdays in scripts/demo-setup.ts
 - [ ] T088 End-to-end smoke test of hackathon demo flow: login → build squad → view matchday → simulate → leaderboard → MP swap → WhatsApp bot
 
@@ -399,3 +403,7 @@ With multiple Claude Code instances (via `hack` command):
 - Desktop-first layout — WhatsApp covers mobile experience (MVP.md §8)
 - Mock data: 4 teams, ~80 players, 2 simulated matchdays (MVP.md §10)
 - Player values: $1M–$15M, starting budget $100M (MVP.md §1)
+- Auth: Google OAuth only for MVP (MVP.md §9) — phone/OTP deferred to post-MVP
+- Platform rake: 5% deducted from league pool before prize distribution (MVP.md §2)
+- Virtual budget purchase: $5M=$1k ARS, $10M=$1.8k ARS, $20M=$3k ARS (MVP.md §3)
+- Visual style: Retro ESPN/Yahoo Sports 2003 — thick borders, beveled buttons, gold/green palette (Constitution I)
