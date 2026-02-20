@@ -47,3 +47,25 @@ Multiple Claude Code instances are working on this project simultaneously from d
    git push origin main
    hackdone <your-feature>
    ```
+
+## Spec-Driven Development (Spec Kit)
+
+This project uses [GitHub Spec Kit](https://github.com/github/spec-kit) for structured development.
+
+### Workflow phases
+
+1. `/speckit.constitution` — Establish project principles (do this ONCE at the start)
+2. `/speckit.specify` — Write the spec (what we're building)
+3. `/speckit.plan` — Create the technical plan (how we build it)
+4. `/speckit.tasks` — Break it into small, testable tasks
+5. `/speckit.implement` — Execute a task
+
+### Optional
+- `/speckit.clarify` — Ask questions to de-risk ambiguity (before plan)
+- `/speckit.analyze` — Cross-artifact consistency check (before implement)
+- `/speckit.checklist` — Quality checklist (after plan)
+
+### Important
+- Specs live in `docs/` — these are the source of truth
+- Always run the phases in order
+- Each Claude instance should pick tasks from the task list, not invent work

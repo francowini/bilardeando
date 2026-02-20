@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "feature": "mvp-definition",
+    "branch": "feat/mvp-definition",
+    "user": "player2",
+    "dir": "/home/player2/worktrees/mvp-definition",
+    "desc": "Documento de definicion del MVP del Gran DT",
+    "started": "2026-02-20T20:18:30Z",
+    "status": "done"
+  }
+]

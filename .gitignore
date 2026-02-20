@@ -1,0 +1,4 @@
+# Claude Code credentials (keep commands tracked)
+.claude/settings.local.json
+.claude/statsig/
+.claude/todos/
