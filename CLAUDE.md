@@ -114,3 +114,10 @@ This project uses [GitHub Spec Kit](https://github.com/github/spec-kit).
 - Specs live in `docs/` — source of truth
 - Always follow the phase order
 - Each Claude instance picks tasks from the task list, not invents work
+
+## Active Technologies
+- TypeScript 5.x (strict mode enabled) + React 18, Tailwind CSS, shadcn/ui, Lucide icons, Prisma ORM, NextAuth.js (Auth.js v5), mercadopago SDK (001-bilardeando-mvp)
+- PostgreSQL (via Prisma) — hosted on Supabase or Railway for hackathon (001-bilardeando-mvp)
+
+## Recent Changes
+- 001-bilardeando-mvp: Added TypeScript 5.x (strict mode enabled) + React 18, Tailwind CSS, shadcn/ui, Lucide icons, Prisma ORM, NextAuth.js (Auth.js v5), mercadopago SDK
