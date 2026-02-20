@@ -51,9 +51,9 @@
 - [ ] T008 [P] Create Prisma client singleton in src/lib/db.ts
 - [ ] T009 [P] Create shared TypeScript types and interfaces (Formation, PlayerFilters, SquadValidation, MatchdayView, LeaderboardEntry) in src/types/index.ts
 - [ ] T010 [P] Create formation definitions with position slot counts for all supported formations (4-3-3, 4-4-2, 3-5-2, 3-4-3, 4-5-1, 5-3-2, 5-4-1) in src/lib/formations.ts
-- [ ] T011 [P] Create stats provider interface (getTeams, getPlayers, getMatchStats, getPlayerRating) in src/providers/stats-provider.interface.ts
-- [ ] T012 [P] Implement mock stats provider with hardcoded Argentine league data in src/providers/mock-stats-provider.ts
-- [ ] T013 Create mock data JSON files (4 teams, ~80 players with positions/values/ratings, 2 matchdays with match results and player stats) in src/mock-data/teams.json, src/mock-data/players.json, src/mock-data/matches.json, src/mock-data/stats.json
+- [x] T011 [P] Create stats provider interface (getTeams, getPlayers, getMatchStats, getPlayerRating) in src/providers/stats-provider.interface.ts
+- [x] T012 [P] Implement mock stats provider with hardcoded Argentine league data in src/providers/mock-stats-provider.ts
+- [x] T013 Create mock data JSON files (28 teams, 889 players from API-Football pipeline, 2 matchdays with 28 match results and 616 player stats) in src/mock-data/matches.json, src/mock-data/stats.json — teams/players read from data/processed/
 - [ ] T014 Create database seed script that loads mock data into Prisma (teams, players, matchdays, matches, player stats, demo users with pre-built squads) in prisma/seed.ts
 - [ ] T015 [P] Configure NextAuth.js v5 with Prisma adapter and Google OAuth provider (sole auth method for MVP) in src/lib/auth.ts
 - [ ] T016 [P] Create NextAuth API route handler in src/app/api/auth/[...nextauth]/route.ts
