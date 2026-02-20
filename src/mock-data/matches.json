@@ -1,0 +1,300 @@
+{
+  "matchdays": [
+    {
+      "id": 1,
+      "name": "Fecha 1",
+      "status": "RESULTS",
+      "startDate": "2026-03-01T17:00:00Z",
+      "endDate": "2026-03-01T22:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Fecha 2",
+      "status": "RESULTS",
+      "startDate": "2026-03-08T17:00:00Z",
+      "endDate": "2026-03-08T22:00:00Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": 1,
+      "matchdayId": 1,
+      "homeTeamApiId": 451,
+      "awayTeamApiId": 473,
+      "homeScore": 2,
+      "awayScore": 1,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T17:00:00Z"
+    },
+    {
+      "id": 2,
+      "matchdayId": 1,
+      "homeTeamApiId": 1065,
+      "awayTeamApiId": 450,
+      "homeScore": 1,
+      "awayScore": 3,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T17:00:00Z"
+    },
+    {
+      "id": 3,
+      "matchdayId": 1,
+      "homeTeamApiId": 476,
+      "awayTeamApiId": 452,
+      "homeScore": 3,
+      "awayScore": 2,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T18:00:00Z"
+    },
+    {
+      "id": 4,
+      "matchdayId": 1,
+      "homeTeamApiId": 434,
+      "awayTeamApiId": 449,
+      "homeScore": 0,
+      "awayScore": 1,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T18:00:00Z"
+    },
+    {
+      "id": 5,
+      "matchdayId": 1,
+      "homeTeamApiId": 440,
+      "awayTeamApiId": 453,
+      "homeScore": 3,
+      "awayScore": 2,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T19:00:00Z"
+    },
+    {
+      "id": 6,
+      "matchdayId": 1,
+      "homeTeamApiId": 455,
+      "awayTeamApiId": 442,
+      "homeScore": 1,
+      "awayScore": 3,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T19:00:00Z"
+    },
+    {
+      "id": 7,
+      "matchdayId": 1,
+      "homeTeamApiId": 458,
+      "awayTeamApiId": 446,
+      "homeScore": 3,
+      "awayScore": 0,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T20:00:00Z"
+    },
+    {
+      "id": 8,
+      "matchdayId": 1,
+      "homeTeamApiId": 445,
+      "awayTeamApiId": 2432,
+      "homeScore": 2,
+      "awayScore": 3,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T20:00:00Z"
+    },
+    {
+      "id": 9,
+      "matchdayId": 1,
+      "homeTeamApiId": 460,
+      "awayTeamApiId": 441,
+      "homeScore": 2,
+      "awayScore": 3,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T21:00:00Z"
+    },
+    {
+      "id": 10,
+      "matchdayId": 1,
+      "homeTeamApiId": 1064,
+      "awayTeamApiId": 478,
+      "homeScore": 1,
+      "awayScore": 2,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T21:00:00Z"
+    },
+    {
+      "id": 11,
+      "matchdayId": 1,
+      "homeTeamApiId": 456,
+      "awayTeamApiId": 457,
+      "homeScore": 0,
+      "awayScore": 1,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T22:00:00Z"
+    },
+    {
+      "id": 12,
+      "matchdayId": 1,
+      "homeTeamApiId": 436,
+      "awayTeamApiId": 435,
+      "homeScore": 1,
+      "awayScore": 0,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T22:00:00Z"
+    },
+    {
+      "id": 13,
+      "matchdayId": 1,
+      "homeTeamApiId": 438,
+      "awayTeamApiId": 437,
+      "homeScore": 2,
+      "awayScore": 0,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T23:00:00Z"
+    },
+    {
+      "id": 14,
+      "matchdayId": 1,
+      "homeTeamApiId": 439,
+      "awayTeamApiId": 474,
+      "homeScore": 3,
+      "awayScore": 3,
+      "status": "FINISHED",
+      "kickoff": "2026-03-01T23:00:00Z"
+    },
+    {
+      "id": 15,
+      "matchdayId": 2,
+      "homeTeamApiId": 449,
+      "awayTeamApiId": 457,
+      "homeScore": 3,
+      "awayScore": 2,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T17:00:00Z"
+    },
+    {
+      "id": 16,
+      "matchdayId": 2,
+      "homeTeamApiId": 456,
+      "awayTeamApiId": 478,
+      "homeScore": 3,
+      "awayScore": 0,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T17:00:00Z"
+    },
+    {
+      "id": 17,
+      "matchdayId": 2,
+      "homeTeamApiId": 476,
+      "awayTeamApiId": 455,
+      "homeScore": 0,
+      "awayScore": 0,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T18:00:00Z"
+    },
+    {
+      "id": 18,
+      "matchdayId": 2,
+      "homeTeamApiId": 474,
+      "awayTeamApiId": 450,
+      "homeScore": 2,
+      "awayScore": 2,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T18:00:00Z"
+    },
+    {
+      "id": 19,
+      "matchdayId": 2,
+      "homeTeamApiId": 2432,
+      "awayTeamApiId": 435,
+      "homeScore": 2,
+      "awayScore": 3,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T19:00:00Z"
+    },
+    {
+      "id": 20,
+      "matchdayId": 2,
+      "homeTeamApiId": 439,
+      "awayTeamApiId": 440,
+      "homeScore": 0,
+      "awayScore": 2,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T19:00:00Z"
+    },
+    {
+      "id": 21,
+      "matchdayId": 2,
+      "homeTeamApiId": 436,
+      "awayTeamApiId": 458,
+      "homeScore": 2,
+      "awayScore": 3,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T20:00:00Z"
+    },
+    {
+      "id": 22,
+      "matchdayId": 2,
+      "homeTeamApiId": 445,
+      "awayTeamApiId": 452,
+      "homeScore": 0,
+      "awayScore": 1,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T20:00:00Z"
+    },
+    {
+      "id": 23,
+      "matchdayId": 2,
+      "homeTeamApiId": 446,
+      "awayTeamApiId": 437,
+      "homeScore": 3,
+      "awayScore": 1,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T21:00:00Z"
+    },
+    {
+      "id": 24,
+      "matchdayId": 2,
+      "homeTeamApiId": 438,
+      "awayTeamApiId": 451,
+      "homeScore": 0,
+      "awayScore": 0,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T21:00:00Z"
+    },
+    {
+      "id": 25,
+      "matchdayId": 2,
+      "homeTeamApiId": 434,
+      "awayTeamApiId": 453,
+      "homeScore": 0,
+      "awayScore": 3,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T22:00:00Z"
+    },
+    {
+      "id": 26,
+      "matchdayId": 2,
+      "homeTeamApiId": 473,
+      "awayTeamApiId": 1064,
+      "homeScore": 2,
+      "awayScore": 0,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T22:00:00Z"
+    },
+    {
+      "id": 27,
+      "matchdayId": 2,
+      "homeTeamApiId": 442,
+      "awayTeamApiId": 441,
+      "homeScore": 1,
+      "awayScore": 2,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T23:00:00Z"
+    },
+    {
+      "id": 28,
+      "matchdayId": 2,
+      "homeTeamApiId": 1065,
+      "awayTeamApiId": 460,
+      "homeScore": 2,
+      "awayScore": 0,
+      "status": "FINISHED",
+      "kickoff": "2026-03-08T23:00:00Z"
+    }
+  ]
+}
