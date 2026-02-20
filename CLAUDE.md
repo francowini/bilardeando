@@ -1,10 +1,10 @@
-# Hackathon — Multi-Claude Setup
+# Hackathon — Multi-Claude Workspace
 
-Multiple Claude Code instances are working on this project simultaneously from different terminals. Each instance works in its own worktree to avoid conflicts.
+Multiple Claude Code instances work on this project simultaneously. Each instance uses its own git worktree to avoid conflicts.
 
-## Before you start working
+## Getting Started
 
-1. Check the board to see what others are doing:
+1. Check the board:
    ```bash
    board
    ```
@@ -13,34 +13,28 @@ Multiple Claude Code instances are working on this project simultaneously from d
    ```bash
    hack <feature-name> "short description"
    ```
-   This gives you an isolated copy of the code on a new branch.
 
-3. Work inside that worktree:
+3. Work inside it:
    ```bash
    cd ~/worktrees/<feature-name>
    ```
 
 ## Commands
 
-| Command | What it does |
+| Command | Description |
 |---|---|
 | `board` | Show all active features and who's working on what |
 | `hack <name> "desc"` | Create a new worktree + branch for a feature |
 | `hackdone <name>` | Mark a feature as done on the board |
-| `sync` | Pull latest main into your current branch |
+| `sync` | Rebase current branch on latest main |
 | `main-log` | Show recent commits on main |
 
-## Rules
+## Git Workflow
 
-1. **ALWAYS run `board` first** to see what's taken
-2. **NEVER work directly on main** — use `hack` to create a worktree
-3. **Don't edit files another instance is actively changing** — check `board`
-4. **Commit frequently** with clear messages
-5. **Push your branch** when done so others can see it:
-   ```bash
-   git push origin feat/<your-feature>
-   ```
-6. **Merge to main** when your feature is ready:
+1. **Never work directly on main** — always use `hack` to create a worktree
+2. Commit frequently with clear messages
+3. Push your branch: `git push origin feat/<your-feature>`
+4. When ready to merge:
    ```bash
    git checkout main && git pull origin main
    git merge --no-ff feat/<your-feature>
@@ -48,24 +42,52 @@ Multiple Claude Code instances are working on this project simultaneously from d
    hackdone <your-feature>
    ```
 
+## Security — CRITICAL
+
+**NEVER commit or push secrets, keys, or credentials.**
+
+Before every commit, check for:
+- API keys, tokens, passwords
+- `.env` files with real values
+- SSH private keys
+- Any string that looks like `sk-`, `ghp_`, `gho_`, `AKIA`, `-----BEGIN`
+
+If you accidentally staged a secret:
+```bash
+git reset HEAD <file>
+```
+
+If you accidentally committed a secret:
+```bash
+git reset --soft HEAD~1
+# remove the secret, then recommit
+```
+
+**Files that must NEVER be committed:**
+- `*.pem`, `*.key`, `*.p12`
+- `.env` (use `.env.example` with placeholders instead)
+- Any file containing `PRIVATE KEY`
+
 ## Spec-Driven Development (Spec Kit)
 
-This project uses [GitHub Spec Kit](https://github.com/github/spec-kit) for structured development.
+This project uses [GitHub Spec Kit](https://github.com/github/spec-kit).
 
-### Workflow phases
+### Phases (run in order)
 
-1. `/speckit.constitution` — Establish project principles (do this ONCE at the start)
+1. `/speckit.constitution` — Project principles (once at the start)
 2. `/speckit.specify` — Write the spec (what we're building)
-3. `/speckit.plan` — Create the technical plan (how we build it)
-4. `/speckit.tasks` — Break it into small, testable tasks
+3. `/speckit.plan` — Technical plan (how we build it)
+4. `/speckit.tasks` — Break into small, testable tasks
 5. `/speckit.implement` — Execute a task
 
 ### Optional
-- `/speckit.clarify` — Ask questions to de-risk ambiguity (before plan)
-- `/speckit.analyze` — Cross-artifact consistency check (before implement)
-- `/speckit.checklist` — Quality checklist (after plan)
+
+- `/speckit.clarify` — De-risk ambiguity (before plan)
+- `/speckit.analyze` — Consistency check (before implement)
+- `/speckit.checklist` — Quality validation (after plan)
 
 ### Important
+
 - Specs live in `docs/` — these are the source of truth
-- Always run the phases in order
+- Always follow the phase order
 - Each Claude instance should pick tasks from the task list, not invent work

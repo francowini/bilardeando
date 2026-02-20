@@ -1,4 +1,19 @@
-# Claude Code credentials (keep commands tracked)
+# Secrets — never commit
+.env
+.env.local
+.env.production
+*.pem
+*.key
+*.p12
+
+# Claude Code local state
 .claude/settings.local.json
 .claude/statsig/
 .claude/todos/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
