@@ -1,23 +1,188 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Retro ESPN 2003 Theme — Dark Green + Gold */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+
+    /* Dark green #1a472a */
+    --primary: 141 46% 19%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Light gray for secondary surfaces */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 60 5% 93%;
+    --muted-foreground: 0 0% 40%;
+
+    /* Gold/amber #c5a000 */
+    --accent: 49 100% 39%;
+    --accent-foreground: 0 0% 5%;
+
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Visible thick borders */
+    --border: 0 0% 72%;
+    --input: 0 0% 72%;
+    --ring: 141 46% 19%;
+
+    /* Retro charts — football themed */
+    --chart-1: 141 46% 19%;
+    --chart-2: 49 100% 39%;
+    --chart-3: 0 84% 50%;
+    --chart-4: 0 0% 45%;
+    --chart-5: 141 46% 35%;
+
+    /* Minimal border radius — 2px max per constitution */
+    --radius: 2px;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  /* Retro thick borders on all tables */
+  table {
+    @apply border-collapse;
+  }
+
+  th {
+    @apply bg-primary text-primary-foreground font-heading font-bold
+           text-left px-3 py-2 text-sm uppercase tracking-wide
+           border-2 border-primary;
+  }
+
+  td {
+    @apply px-3 py-2 text-sm border border-border;
+  }
+
+  /* Alternating row colors */
+  tbody tr:nth-child(even) {
+    @apply bg-muted;
+  }
+
+  tbody tr:hover {
+    @apply bg-accent/10;
+  }
+}
+
+@layer components {
+  /* Retro beveled button base */
+  .btn-retro {
+    @apply font-heading font-bold uppercase tracking-wide text-sm
+           px-4 py-2 border-2
+           transition-colors duration-100;
+    border-style: outset;
+  }
+
+  .btn-retro:active {
+    border-style: inset;
+  }
+
+  .btn-retro-primary {
+    @apply btn-retro bg-primary text-primary-foreground border-primary;
+  }
+
+  .btn-retro-primary:hover {
+    @apply bg-primary/90;
+  }
+
+  .btn-retro-accent {
+    @apply btn-retro bg-accent text-accent-foreground border-accent;
+  }
+
+  .btn-retro-accent:hover {
+    @apply bg-accent/90;
+  }
+
+  .btn-retro-outline {
+    @apply btn-retro bg-background text-foreground border-border;
+  }
+
+  .btn-retro-outline:hover {
+    @apply bg-muted;
+  }
+
+  /* Retro header bar with gradient (Web 2.0 style) */
+  .header-bar {
+    @apply bg-primary text-primary-foreground font-heading font-bold
+           text-sm uppercase tracking-wide
+           px-3 py-2 border-b-2 border-primary;
+    background: linear-gradient(180deg, hsl(141 46% 24%) 0%, hsl(141 46% 16%) 100%);
+  }
+
+  .header-bar-accent {
+    @apply bg-accent text-accent-foreground font-heading font-bold
+           text-sm uppercase tracking-wide
+           px-3 py-2 border-b-2 border-accent;
+    background: linear-gradient(180deg, hsl(49 100% 44%) 0%, hsl(49 100% 34%) 100%);
+  }
+
+  /* Retro card with thick bordered header */
+  .card-retro {
+    @apply bg-card border-2 border-border;
+  }
+
+  .card-retro-header {
+    @apply header-bar;
+  }
+
+  .card-retro-body {
+    @apply p-3;
+  }
+
+  /* Tab navigation (retro style) */
+  .tab-nav {
+    @apply flex border-b-2 border-primary bg-primary;
+  }
+
+  .tab-nav-item {
+    @apply font-heading font-bold text-sm uppercase tracking-wide
+           px-4 py-2 text-primary-foreground/70
+           border-r border-primary-foreground/20
+           hover:text-primary-foreground hover:bg-primary/80
+           transition-colors duration-100;
+  }
+
+  .tab-nav-item-active {
+    @apply tab-nav-item text-primary-foreground bg-accent
+           text-accent-foreground;
+  }
+
+  /* Data table with retro styling */
+  .table-retro {
+    @apply w-full border-2 border-border;
+  }
+
+  /* Position badges */
+  .badge-position {
+    @apply inline-block font-heading font-bold text-xs uppercase
+           px-2 py-0.5 border border-border;
+  }
+
+  .badge-gk { @apply badge-position bg-amber-500 text-white; }
+  .badge-def { @apply badge-position bg-blue-600 text-white; }
+  .badge-mid { @apply badge-position bg-green-600 text-white; }
+  .badge-fwd { @apply badge-position bg-red-600 text-white; }
 }
 
 @layer utilities {
