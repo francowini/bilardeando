@@ -179,10 +179,10 @@
            px-2 py-0.5 border border-border;
   }
 
-  .badge-gk { @apply badge-position bg-amber-500 text-white; }
-  .badge-def { @apply badge-position bg-blue-600 text-white; }
-  .badge-mid { @apply badge-position bg-green-600 text-white; }
-  .badge-fwd { @apply badge-position bg-red-600 text-white; }
+  .badge-gk { @apply badge-position bg-amber-700 text-white; }
+  .badge-def { @apply badge-position bg-blue-800 text-white; }
+  .badge-mid { @apply badge-position bg-green-800 text-white; }
+  .badge-fwd { @apply badge-position bg-red-700 text-white; }
 }
 
 @layer utilities {

@@ -125,6 +125,12 @@ This project uses [GitHub Spec Kit](https://github.com/github/spec-kit).
 - Always follow the phase order
 - Each Claude instance picks tasks from the task list, not invents work
 
+## Language Rules
+
+- **UI text (web app)**: Latin American Spanish — all user-facing strings, labels, buttons, messages, tooltips
+- **Code**: English — variable names, function names, comments, commit messages, docs, file names
+- **Data**: Player names, team names stay in their original language (Spanish)
+
 ## Active Technologies
 - TypeScript 5.x (strict mode enabled) + React 18, Tailwind CSS, shadcn/ui, Lucide icons, Prisma ORM, NextAuth.js (Auth.js v5), mercadopago SDK (001-bilardeando-mvp)
 - PostgreSQL (via Prisma) — hosted on Supabase or Railway for hackathon (001-bilardeando-mvp)
