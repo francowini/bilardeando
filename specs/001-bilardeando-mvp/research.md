@@ -26,22 +26,22 @@
 - Free tier: 100 requests/day (sufficient for post-match data ingestion)
 - Pro tier ($19/mo): 7,500 req/day — more than enough at scale
 
-**Hackathon approach**: Mock data layer with JSON fixtures. Interface `StatsProvider` allows seamless swap to API-Football post-hackathon.
+**Hackathon approach**: Build a scraper to pull real player data (names, teams, positions, stats) from public sources and seed the database. The `StatsProvider` interface still abstracts the data source so API-Football can be swapped in post-hackathon for live match ratings.
 
 ---
 
 ## 2. WhatsApp Business API Provider
 
-### Decision: Mock for hackathon, Meta Cloud API Direct for production
+### Decision: Mock for hackathon, Gupshup for production
 
-**Rationale**: Meta Cloud API has zero platform fees, official Node.js SDK, and cheapest per-message rates. For the hackathon, a mock provider with console/DB logging is fastest to implement.
+**Rationale**: Gupshup offers fast onboarding ($0 monthly, ~$0.001/msg markup), pre-approved templates, and good emerging-market presence. For the hackathon, a mock provider with console/DB logging is fastest.
 
 **Alternatives considered**:
 
 | Provider | Monthly Fixed | Markup/msg | Verdict |
 |---|---|---|---|
-| Meta Cloud API (Direct) | $0 | $0 | **Production choice** — cheapest, official SDK |
-| Gupshup | $0 | ~$0.001/msg + 6% marketing | Good fallback if Meta verification is slow |
+| Gupshup | $0 | ~$0.001/msg + 6% marketing | **Production choice** — fast onboarding, minimal markup |
+| Meta Cloud API (Direct) | $0 | $0 | Cheapest but business verification takes days |
 | 360dialog | $49/mo | $0 | Fixed cost bad for early stage |
 | Twilio | $0 | $0.005/msg | Best DX but most expensive per message |
 
@@ -164,24 +164,26 @@ const preference = await new Preference(client).create({
 
 ---
 
-## 8. Mock Data Strategy (Hackathon Critical)
+## 8. Data Strategy (Hackathon Critical)
 
 ### What gets mocked vs. what's real
 
 | Component | Hackathon Demo | Why |
 |---|---|---|
-| **Stats data** | Mock (JSON fixtures) | No time for API-Football setup |
-| **WhatsApp bot** | Mock (admin panel chat viewer) | Business verification takes days |
+| **Stats data** | **Scraper** (real player data scraped from public sources) | Real data makes the demo convincing; seeded into DB |
+| **Match results** | Mock (simulated matchday results) | No live matches during hackathon — admin button triggers lifecycle |
+| **WhatsApp bot** | Mock (admin panel chat viewer) | Gupshup setup takes time, mock is faster for demo |
 | **Mercado Pago** | **Real sandbox** | Works end-to-end with test accounts, impressive for judges |
-| **Auth OTP** | Mock (accept `000000`) | No WhatsApp provider to deliver real OTPs |
+| **Auth OTP** | Mock (accept `000000`) | No WhatsApp provider to deliver real OTPs yet |
 | **Google OAuth** | **Real** (if time) | Quick to set up via Google Cloud Console |
-| **Database** | **Real** (Supabase free) | Easy setup, persists data for demo |
+| **Database** | **Real** (Supabase free + Vercel integration) | Easy setup, persists data for demo |
 | **AI chat (Claude)** | **Real** (API key required) | Core differentiator, worth demoing live |
 
-### Mock data requirements
-- 4 Argentine teams with real names
-- ~80 players with realistic names, positions, and stats
-- 2 matchdays with complete fixture results
+### Scraper data requirements
+- Scrape real Argentine Liga Profesional player data (names, teams, positions, photos)
+- At least 4 teams with full squads (~20 players each, ~80 total)
+- Player market values assigned based on real-world standing
+- 2 simulated matchdays with realistic fixture results and player ratings
 - Pre-built demo squads for 2-3 demo users
 - Player ratings per match (6.0-9.5 scale matching API-Football format)
 
