@@ -3,6 +3,7 @@ import {
   getAuthOrError,
   successResponse,
   errorResponse,
+  getMatchdayLockGuard,
 } from "@/lib/api-helpers";
 import {
   addPlayerToSquad,
@@ -16,6 +17,9 @@ import {
 export async function POST(request: NextRequest) {
   const auth = await getAuthOrError();
   if (auth instanceof NextResponse) return auth;
+
+  const lockGuard = await getMatchdayLockGuard();
+  if (lockGuard) return lockGuard;
 
   const body = await request.json().catch(() => ({}));
   const playerId = body.playerId as number;
@@ -38,6 +42,9 @@ export async function DELETE(request: NextRequest) {
   const auth = await getAuthOrError();
   if (auth instanceof NextResponse) return auth;
 
+  const lockGuard = await getMatchdayLockGuard();
+  if (lockGuard) return lockGuard;
+
   const body = await request.json().catch(() => ({}));
   const playerId = body.playerId as number;
 
@@ -57,6 +64,9 @@ export async function DELETE(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const auth = await getAuthOrError();
   if (auth instanceof NextResponse) return auth;
+
+  const lockGuard = await getMatchdayLockGuard();
+  if (lockGuard) return lockGuard;
 
   const body = await request.json().catch(() => ({}));
   const playerId = body.playerId as number;

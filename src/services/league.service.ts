@@ -407,8 +407,40 @@ export async function checkAutoCancel(leagueId: number): Promise<boolean> {
 
 /**
  * Get available matchdays for league creation.
+ * Ensures matchdays 1-28 exist (creates missing ones for the Argentine league season).
  */
 export async function getAvailableMatchdays() {
+  const TOTAL_MATCHDAYS = 28;
+
+  // Check how many exist
+  const existing = await prisma.matchday.findMany({
+    select: { id: true, name: true },
+    orderBy: { id: "asc" },
+  });
+
+  const existingNames = new Set(existing.map((m) => m.name));
+
+  // Create missing matchdays (Fecha 3 through Fecha 28)
+  const baseDate = new Date("2026-03-15T17:00:00Z");
+  for (let i = 1; i <= TOTAL_MATCHDAYS; i++) {
+    const name = `Fecha ${i}`;
+    if (!existingNames.has(name)) {
+      const startDate = new Date(baseDate);
+      startDate.setDate(baseDate.getDate() + (i - 3) * 7);
+      const endDate = new Date(startDate);
+      endDate.setHours(endDate.getHours() + 5);
+
+      await prisma.matchday.create({
+        data: {
+          name,
+          status: "OPEN",
+          startDate,
+          endDate,
+        },
+      });
+    }
+  }
+
   return prisma.matchday.findMany({
     select: { id: true, name: true, status: true, startDate: true },
     orderBy: { id: "asc" },

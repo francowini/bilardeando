@@ -6,7 +6,7 @@ import { FormationSelector } from "@/components/squad/formation-selector";
 import { PitchView } from "@/components/squad/pitch-view";
 import { BenchList } from "@/components/squad/bench-list";
 import { BudgetBar } from "@/components/squad/budget-bar";
-import { AlertTriangle, Check, ArrowLeftRight } from "lucide-react";
+import { AlertTriangle, Check, ArrowLeftRight, Lock } from "lucide-react";
 import type { FormationCode, SquadValidation } from "@/types";
 import { STARTING_BUDGET } from "@/lib/formations";
 
@@ -38,6 +38,9 @@ export default function SquadPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [matchdayStatus, setMatchdayStatus] = useState<string | null>(null);
+  const [matchdayName, setMatchdayName] = useState<string | null>(null);
 
   const fetchSquad = useCallback(async () => {
     try {
@@ -46,6 +49,9 @@ export default function SquadPage() {
         const data = await res.json();
         setSquad(data.squad);
         setValidation(data.validation);
+        setLocked(data.locked ?? false);
+        setMatchdayStatus(data.matchdayStatus ?? null);
+        setMatchdayName(data.matchdayName ?? null);
         if (data.summary) {
           setRemainingBudget(data.summary.remainingBudget);
         }
@@ -163,8 +169,22 @@ export default function SquadPage() {
     );
   }
 
+  const isLocked = locked || actionLoading;
+
   return (
     <div className="space-y-4">
+      {/* Locked banner */}
+      {locked && (
+        <div className="border-2 border-amber-600 bg-amber-600/10 p-3 flex items-center gap-2 text-sm">
+          <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+          <span className="font-heading font-bold">
+            La fecha &quot;{matchdayName}&quot; está{" "}
+            {matchdayStatus === "LOCK" ? "bloqueada" : matchdayStatus === "LIVE" ? "en vivo" : "finalizada"}.
+            No se pueden hacer cambios al equipo.
+          </span>
+        </div>
+      )}
+
       {/* Error banner */}
       {error && (
         <div className="border-2 border-destructive bg-destructive/10 p-3 flex items-center gap-2 text-sm">
@@ -231,20 +251,27 @@ export default function SquadPage() {
             playerCount={squad?.players.length ?? 0}
           />
         </div>
-        <Link
-          href="/transfers"
-          className="btn-retro-accent flex items-center gap-1 text-xs whitespace-nowrap mt-1"
-        >
-          <ArrowLeftRight className="w-3 h-3" />
-          Mercado de Pases
-        </Link>
+        {locked ? (
+          <span className="btn-retro-accent flex items-center gap-1 text-xs whitespace-nowrap mt-1 opacity-50 cursor-not-allowed">
+            <Lock className="w-3 h-3" />
+            Mercado Cerrado
+          </span>
+        ) : (
+          <Link
+            href="/transfers"
+            className="btn-retro-accent flex items-center gap-1 text-xs whitespace-nowrap mt-1"
+          >
+            <ArrowLeftRight className="w-3 h-3" />
+            Mercado de Pases
+          </Link>
+        )}
       </div>
 
       {/* Formation selector */}
       <FormationSelector
         selected={formation}
         onChange={handleFormationChange}
-        disabled={actionLoading}
+        disabled={isLocked}
       />
 
       {/* 2-column layout: Bench (1/3) | Pitch (2/3) */}
@@ -261,10 +288,10 @@ export default function SquadPage() {
               rating: p.rating,
               fantasyPrice: p.fantasyPrice,
             }))}
-            onMoveToStarter={(playerId) =>
+            onMoveToStarter={locked ? undefined : (playerId) =>
               handlePlayerAction(playerId, "toggleStarter")
             }
-            onSwap={handleSwap}
+            onSwap={locked ? undefined : handleSwap}
           />
         </div>
 
@@ -281,14 +308,14 @@ export default function SquadPage() {
               isCaptain: p.isCaptain,
               isCaptainSub: p.isCaptainSub,
             }))}
-            onSetCaptain={(playerId) =>
+            onSetCaptain={locked ? undefined : (playerId) =>
               handlePlayerAction(playerId, "captain")
             }
-            onSetCaptainSub={(playerId) =>
+            onSetCaptainSub={locked ? undefined : (playerId) =>
               handlePlayerAction(playerId, "captainSub")
             }
-            onSwap={handleSwap}
-            onMoveToBench={(playerId) =>
+            onSwap={locked ? undefined : handleSwap}
+            onMoveToBench={locked ? undefined : (playerId) =>
               handlePlayerAction(playerId, "toggleStarter")
             }
           />

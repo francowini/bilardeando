@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { TransactionType, TransactionStatus } from "@/generated/prisma/client";
 
-const AI_UNLOCK_PRICE_ARS = 500;
+const AI_UNLOCK_PRICE_ARS = 5000;
 
 export interface AiUnlockResult {
   transactionId: number;

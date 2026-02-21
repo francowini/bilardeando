@@ -176,13 +176,7 @@ export function CreateLeagueForm({
         {/* Prize info */}
         <div className="border-2 border-border bg-muted/50 p-3 text-xs">
           <div className="font-heading font-bold text-sm mb-1">Premios estimados</div>
-          <div className="text-muted-foreground">
-            Pozo: ${(buyIn * maxPlayers).toLocaleString()} ARS (con {maxPlayers} jugadores)
-            <br />
-            Comisión plataforma: 5%
-            <br />
-            Distribución: Top {maxPlayers <= 6 ? "2" : maxPlayers <= 15 ? "3" : "4"} premios
-          </div>
+          <PrizeBreakdown buyIn={buyIn} maxPlayers={maxPlayers} />
         </div>
 
         {/* Submit */}
@@ -203,6 +197,57 @@ export function CreateLeagueForm({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+const RAKE_PERCENT = 5;
+const POSITION_LABELS = ["1ro", "2do", "3ro", "4to"];
+
+function PrizeBreakdown({ buyIn, maxPlayers }: { buyIn: number; maxPlayers: number }) {
+  const totalPool = buyIn * maxPlayers;
+  const rake = totalPool * (RAKE_PERCENT / 100);
+  const netPool = totalPool - rake;
+
+  let percentages: number[];
+  if (maxPlayers <= 6) {
+    percentages = [70, 30];
+  } else if (maxPlayers <= 15) {
+    percentages = [50, 30, 20];
+  } else {
+    percentages = [40, 25, 20, 15];
+  }
+
+  const prizes = percentages.map((pct, i) => ({
+    position: POSITION_LABELS[i],
+    percentage: pct,
+    amount: Math.round((netPool * pct) / 100),
+  }));
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">Pozo total ({maxPlayers} jugadores)</span>
+        <span className="font-heading font-bold">${totalPool.toLocaleString("es-AR")} ARS</span>
+      </div>
+      <div className="flex justify-between text-muted-foreground">
+        <span>Comisión plataforma ({RAKE_PERCENT}%)</span>
+        <span>-${rake.toLocaleString("es-AR")} ARS</span>
+      </div>
+      <div className="flex justify-between border-t border-border pt-1">
+        <span className="font-heading font-bold">Pozo neto</span>
+        <span className="font-heading font-bold text-espn-green">${netPool.toLocaleString("es-AR")} ARS</span>
+      </div>
+      <div className="mt-2 space-y-1">
+        {prizes.map((p) => (
+          <div key={p.position} className="flex justify-between">
+            <span>
+              {p.position} ({p.percentage}%)
+            </span>
+            <span className="font-heading font-bold">${p.amount.toLocaleString("es-AR")} ARS</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

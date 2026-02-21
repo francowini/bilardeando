@@ -248,7 +248,10 @@ export default function MatchdayPage() {
 
         {/* Squad points */}
         <div>
-          {points && points.playerPoints.length > 0 ? (
+          {points &&
+          points.playerPoints.length > 0 &&
+          (matchday.status === "LIVE" || matchday.status === "RESULTS") &&
+          points.playerPoints.some((p) => p.played) ? (
             <SquadPoints
               playerPoints={points.playerPoints}
               totalPoints={points.totalPoints}
@@ -258,8 +261,12 @@ export default function MatchdayPage() {
               <div className="card-retro-header">Puntaje del Equipo</div>
               <div className="card-retro-body text-center py-8 text-muted-foreground text-sm">
                 {matchday.status === "OPEN"
-                  ? "Los puntajes se calculan cuando la fecha avanza a RESULTADOS"
-                  : "Armá tu equipo en la pestaña Equipo para ver tus puntos"}
+                  ? "Los puntajes se calculan cuando arranquen los partidos"
+                  : matchday.status === "LOCK"
+                    ? "La fecha está bloqueada. Los puntos se calcularán cuando arranquen los partidos"
+                    : points && points.playerPoints.length > 0
+                      ? "Ningún jugador de tu equipo ha jugado todavía"
+                      : "Armá tu equipo en la pestaña Equipo para ver tus puntos"}
               </div>
             </div>
           )}

@@ -104,7 +104,7 @@ export default function AiUnlockCard({
 
           <div className="border-2 border-border p-4 text-center min-w-[160px]">
             <p className="font-heading text-3xl font-bold text-espn-green">
-              $500
+              $5.000
             </p>
             <p className="text-xs text-muted-foreground uppercase font-heading">
               Pago unico ARS

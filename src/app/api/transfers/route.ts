@@ -3,6 +3,7 @@ import {
   getAuthOrError,
   successResponse,
   errorResponse,
+  getMatchdayLockGuard,
 } from "@/lib/api-helpers";
 import { buyPlayer, sellPlayer } from "@/services/transfer.service";
 import { getSquadSummary } from "@/services/squad.service";
@@ -11,6 +12,10 @@ import { getSquadSummary } from "@/services/squad.service";
 export async function POST(request: NextRequest) {
   const auth = await getAuthOrError();
   if (auth instanceof NextResponse) return auth;
+
+  // Check if matchday is locked
+  const lockGuard = await getMatchdayLockGuard();
+  if (lockGuard) return lockGuard;
 
   const body = await request.json().catch(() => ({}));
   const action = body.action as string;

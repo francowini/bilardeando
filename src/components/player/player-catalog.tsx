@@ -22,7 +22,7 @@ interface CatalogTeam {
 
 interface PlayerCatalogProps {
   selectedPlayerIds: Set<number>;
-  onSelectPlayer: (player: CatalogPlayer) => void;
+  onSelectPlayer?: (player: CatalogPlayer) => void;
   remainingBudget: number;
 }
 
@@ -192,7 +192,7 @@ export function PlayerCatalog({
                     fantasyPrice={player.fantasyPrice}
                     isSelected={isSelected}
                     onSelect={
-                      !isSelected && canAfford
+                      !isSelected && canAfford && onSelectPlayer
                         ? () => onSelectPlayer(player)
                         : undefined
                     }
