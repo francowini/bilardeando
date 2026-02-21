@@ -3,6 +3,7 @@ import {
   getAuthOrError,
   successResponse,
   errorResponse,
+  getMatchdayLockGuard,
 } from "@/lib/api-helpers";
 import {
   getSquadByUser,
@@ -11,6 +12,7 @@ import {
   updateFormation,
   validateSquad,
 } from "@/services/squad.service";
+import { isMatchdayLocked } from "@/services/matchday.service";
 import type { FormationCode } from "@/types";
 import { isValidFormation } from "@/lib/formations";
 
@@ -19,13 +21,26 @@ export async function GET() {
   const auth = await getAuthOrError();
   if (auth instanceof NextResponse) return auth;
 
-  const squad = await getSquadByUser(auth.userId);
+  const [squad, lockState] = await Promise.all([
+    getSquadByUser(auth.userId),
+    isMatchdayLocked(),
+  ]);
+
   if (!squad) {
-    return successResponse({ squad: null, summary: null, validation: null });
+    return successResponse({
+      squad: null,
+      summary: null,
+      validation: null,
+      locked: lockState.locked,
+      matchdayStatus: lockState.status,
+      matchdayName: lockState.matchdayName,
+    });
   }
 
-  const summary = await getSquadSummary(auth.userId);
-  const validation = await validateSquad(auth.userId);
+  const [summary, validation] = await Promise.all([
+    getSquadSummary(auth.userId),
+    validateSquad(auth.userId),
+  ]);
 
   const squadData = {
     id: squad.id,
@@ -45,13 +60,23 @@ export async function GET() {
     })),
   };
 
-  return successResponse({ squad: squadData, summary, validation });
+  return successResponse({
+    squad: squadData,
+    summary,
+    validation,
+    locked: lockState.locked,
+    matchdayStatus: lockState.status,
+    matchdayName: lockState.matchdayName,
+  });
 }
 
 // POST /api/squad — create squad
 export async function POST(request: NextRequest) {
   const auth = await getAuthOrError();
   if (auth instanceof NextResponse) return auth;
+
+  const lockGuard = await getMatchdayLockGuard();
+  if (lockGuard) return lockGuard;
 
   const body = await request.json().catch(() => ({}));
   const formation = (body.formation || "4-3-3") as string;
@@ -68,6 +93,9 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const auth = await getAuthOrError();
   if (auth instanceof NextResponse) return auth;
+
+  const lockGuard = await getMatchdayLockGuard();
+  if (lockGuard) return lockGuard;
 
   const body = await request.json().catch(() => ({}));
   const formation = body.formation as string;

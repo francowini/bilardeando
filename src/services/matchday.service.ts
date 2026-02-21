@@ -77,6 +77,41 @@ export async function getAllMatchdays() {
   });
 }
 
+// ── Check if squad modifications are locked ──
+// Returns the locked matchday status if locked, or null if changes are allowed
+
+export async function isMatchdayLocked(): Promise<{
+  locked: boolean;
+  status: string | null;
+  matchdayName: string | null;
+}> {
+  const current = await prisma.matchday.findFirst({
+    where: { status: { not: "RESULTS" } },
+    orderBy: { startDate: "asc" },
+    select: { status: true, name: true },
+  });
+
+  if (!current) {
+    // All matchdays are RESULTS — squad is locked
+    const latest = await prisma.matchday.findFirst({
+      orderBy: { startDate: "desc" },
+      select: { status: true, name: true },
+    });
+    if (latest) {
+      return { locked: true, status: latest.status, matchdayName: latest.name };
+    }
+    // No matchdays at all — allow changes
+    return { locked: false, status: null, matchdayName: null };
+  }
+
+  const lockedStatuses = ["LOCK", "LIVE"];
+  if (lockedStatuses.includes(current.status)) {
+    return { locked: true, status: current.status, matchdayName: current.name };
+  }
+
+  return { locked: false, status: current.status, matchdayName: current.name };
+}
+
 // ── Advance matchday status (for simulation) ──
 
 export async function advanceMatchdayStatus(
@@ -151,7 +186,62 @@ export async function advanceMatchdayStatus(
         },
       });
     }
+
+    // Generate PlayerMatchStats for all players in these matches (if not already present)
+    await generateMissingPlayerStats(matchday.matches.map((m) => m.id));
   }
 
   return { success: true };
+}
+
+// ── Generate simulated stats for players who don't have them ──
+
+async function generateMissingPlayerStats(matchIds: number[]) {
+  for (const matchId of matchIds) {
+    const match = await prisma.match.findUnique({
+      where: { id: matchId },
+      select: { homeTeamId: true, awayTeamId: true },
+    });
+    if (!match) continue;
+
+    // Get all players from both teams
+    const players = await prisma.player.findMany({
+      where: {
+        teamId: { in: [match.homeTeamId, match.awayTeamId] },
+      },
+      select: { id: true },
+    });
+
+    // Check which already have stats for this match
+    const existingStats = await prisma.playerMatchStat.findMany({
+      where: { matchId },
+      select: { playerId: true },
+    });
+    const existingPlayerIds = new Set(existingStats.map((s) => s.playerId));
+
+    // Create stats for missing players
+    const missing = players.filter((p) => !existingPlayerIds.has(p.id));
+    for (const player of missing) {
+      // Generate realistic rating between 4.0 and 9.5
+      const rating = Math.round((4 + Math.random() * 5.5) * 10) / 10;
+      const minutesPlayed = Math.random() > 0.15 ? 90 : Math.floor(Math.random() * 70) + 20;
+      const goals = Math.random() > 0.85 ? Math.floor(Math.random() * 2) + 1 : 0;
+      const assists = Math.random() > 0.8 ? 1 : 0;
+      const yellowCards = Math.random() > 0.8 ? 1 : 0;
+
+      await prisma.playerMatchStat.create({
+        data: {
+          rating,
+          minutesPlayed,
+          goals,
+          assists,
+          yellowCards,
+          redCards: 0,
+          saves: 0,
+          player: { connect: { id: player.id } },
+          match: { connect: { id: matchId } },
+        },
+      });
+    }
+  }
 }

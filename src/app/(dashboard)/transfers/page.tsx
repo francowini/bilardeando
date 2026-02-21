@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { PlayerCatalog } from "@/components/player/player-catalog";
 import { SquadRoster } from "@/components/squad/squad-roster";
-import { AlertTriangle, DollarSign, Check, ArrowLeft, Wallet } from "lucide-react";
+import { AlertTriangle, DollarSign, Check, ArrowLeft, Wallet, Lock } from "lucide-react";
 import { STARTING_BUDGET, SELL_TAX_RATE } from "@/lib/formations";
 import Link from "next/link";
 
@@ -28,6 +28,9 @@ export default function TransfersPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [matchdayStatus, setMatchdayStatus] = useState<string | null>(null);
+  const [matchdayName, setMatchdayName] = useState<string | null>(null);
 
   const fetchSquad = useCallback(async () => {
     try {
@@ -35,6 +38,9 @@ export default function TransfersPage() {
       if (res.ok) {
         const data = await res.json();
         setPlayers(data.squad?.players ?? []);
+        setLocked(data.locked ?? false);
+        setMatchdayStatus(data.matchdayStatus ?? null);
+        setMatchdayName(data.matchdayName ?? null);
         if (data.summary) {
           setRemainingBudget(data.summary.remainingBudget);
         } else {
@@ -137,6 +143,18 @@ export default function TransfersPage() {
 
   return (
     <div className="space-y-4">
+      {/* Locked banner */}
+      {locked && (
+        <div className="border-2 border-amber-600 bg-amber-600/10 p-3 flex items-center gap-2 text-sm">
+          <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+          <span className="font-heading font-bold">
+            La fecha &quot;{matchdayName}&quot; está{" "}
+            {matchdayStatus === "LOCK" ? "bloqueada" : matchdayStatus === "LIVE" ? "en vivo" : "finalizada"}.
+            El mercado de pases está cerrado.
+          </span>
+        </div>
+      )}
+
       {/* Error banner */}
       {error && (
         <div className="border-2 border-destructive bg-destructive/10 p-3 flex items-center gap-2 text-sm">
@@ -250,7 +268,7 @@ export default function TransfersPage() {
         <div className="lg:col-span-2">
           <PlayerCatalog
             selectedPlayerIds={selectedPlayerIds}
-            onSelectPlayer={handleBuyPlayer}
+            onSelectPlayer={locked ? undefined : handleBuyPlayer}
             remainingBudget={remainingBudget}
           />
         </div>
@@ -268,8 +286,8 @@ export default function TransfersPage() {
               fantasyPrice: p.fantasyPrice,
               isStarter: p.isStarter,
             }))}
-            onSell={handleSellPlayer}
-            disabled={actionLoading}
+            onSell={locked ? undefined : handleSellPlayer}
+            disabled={actionLoading || locked}
             showSellTax
           />
         </div>

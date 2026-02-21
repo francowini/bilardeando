@@ -35,6 +35,30 @@ export function successResponse<T>(data: T, status: number = 200) {
 }
 
 /**
+ * Check if squad changes are locked (matchday in LOCK or LIVE).
+ * Returns a 403 response if locked, or null if changes are allowed.
+ */
+export async function getMatchdayLockGuard(): Promise<NextResponse | null> {
+  const { isMatchdayLocked } = await import("@/services/matchday.service");
+  const lockState = await isMatchdayLocked();
+  if (lockState.locked) {
+    const statusLabel =
+      lockState.status === "LOCK" ? "bloqueada" :
+      lockState.status === "LIVE" ? "en vivo" :
+      "finalizada";
+    return NextResponse.json(
+      {
+        error: `La fecha "${lockState.matchdayName}" está ${statusLabel}. No se pueden hacer cambios al equipo.`,
+        locked: true,
+        matchdayStatus: lockState.status,
+      },
+      { status: 403 },
+    );
+  }
+  return null;
+}
+
+/**
  * Parse a numeric query param. Returns undefined if not present or invalid.
  */
 export function parseIntParam(

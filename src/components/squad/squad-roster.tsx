@@ -16,7 +16,7 @@ interface RosterPlayer {
 
 interface SquadRosterProps {
   players: RosterPlayer[];
-  onSell: (playerId: number) => void;
+  onSell?: (playerId: number) => void;
   disabled?: boolean;
   showSellTax?: boolean;
 }
@@ -82,7 +82,7 @@ export function SquadRoster({ players, onSell, disabled, showSellTax }: SquadRos
                             compact
                           />
                         </div>
-                        {!disabled && (
+                        {!disabled && onSell && (
                           <button
                             onClick={() => onSell(player.id)}
                             className="btn-retro text-[9px] px-1.5 py-1 bg-destructive text-destructive-foreground border-destructive flex-shrink-0"
