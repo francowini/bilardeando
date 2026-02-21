@@ -93,18 +93,18 @@
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Create player card component showing photo, name, position badge, team, rating, market value in src/components/player/player-card.tsx
-- [ ] T028 [P] [US2] Create player catalog component with search, position filter, team filter, sort by value/rating in src/components/player/player-catalog.tsx
-- [ ] T029 [P] [US2] Create formation selector component with visual preview of each formation in src/components/squad/formation-selector.tsx
-- [ ] T030 [P] [US2] Create pitch visualization component showing 11 starters positioned on a football pitch according to formation in src/components/squad/pitch-view.tsx
-- [ ] T031 [P] [US2] Create bench list component showing 7 bench players with 0.5x indicator in src/components/squad/bench-list.tsx
-- [ ] T032 [P] [US2] Create budget bar component showing remaining budget out of $150M in src/components/squad/budget-bar.tsx
-- [ ] T033 [US2] Create squad service with buildSquad, validateFormation, calculateBudget, setCaptain, getSquadByUser methods in src/services/squad.service.ts
-- [ ] T034 [US2] Create players API route (GET with search, position, team query params, pagination) in src/app/api/players/route.ts
-- [ ] T035 [US2] Create squad API routes (GET current squad, POST create squad, PUT update squad, PUT set formation) in src/app/api/squad/route.ts
-- [ ] T036 [US2] Create squad player API routes (POST add player, DELETE remove player, PATCH set captain/captainSub/starter) in src/app/api/squad/players/route.ts
-- [ ] T037 [US2] Create squad builder page composing catalog, formation selector, pitch view, bench list, and budget bar in src/app/(dashboard)/squad/page.tsx
-- [ ] T038 [US2] Add strict squad validation logic to squad.service.ts: enforce formation slot counts per position, budget cap ($150M), max 18 players, exactly 1 captain, exactly 1 captain sub, no duplicate players. This extends T033's stubs with full validation rules
+- [x] T027 [P] [US2] Create player card component showing photo, name, position badge, team, rating, market value in src/components/player/player-card.tsx
+- [x] T028 [P] [US2] Create player catalog component with search, position filter, team filter, sort by value/rating in src/components/player/player-catalog.tsx
+- [x] T029 [P] [US2] Create formation selector component with visual preview of each formation in src/components/squad/formation-selector.tsx
+- [x] T030 [P] [US2] Create pitch visualization component showing 11 starters positioned on a football pitch according to formation in src/components/squad/pitch-view.tsx
+- [x] T031 [P] [US2] Create bench list component showing 7 bench players with 0.5x indicator in src/components/squad/bench-list.tsx
+- [x] T032 [P] [US2] Create budget bar component showing remaining budget out of $150M in src/components/squad/budget-bar.tsx
+- [x] T033 [US2] Create squad service with buildSquad, validateFormation, calculateBudget, setCaptain, getSquadByUser methods in src/services/squad.service.ts
+- [x] T034 [US2] Create players API route (GET with search, position, team query params, pagination) in src/app/api/players/route.ts
+- [x] T035 [US2] Create squad API routes (GET current squad, POST create squad, PUT update squad, PUT set formation) in src/app/api/squad/route.ts
+- [x] T036 [US2] Create squad player API routes (POST add player, DELETE remove player, PATCH set captain/captainSub/starter) in src/app/api/squad/players/route.ts
+- [x] T037 [US2] Create squad builder page composing catalog, formation selector, pitch view, bench list, and budget bar in src/app/(dashboard)/squad/page.tsx
+- [x] T038 [US2] Add strict squad validation logic to squad.service.ts: enforce formation slot counts per position, budget cap ($150M), max 18 players, exactly 1 captain, exactly 1 captain sub, no duplicate players. This extends T033's stubs with full validation rules
 
 **Checkpoint**: User can build a complete, valid squad with formation, captain, and budget management
 
@@ -118,15 +118,15 @@
 
 ### Implementation for User Story 3
 
-- [ ] T039 [P] [US3] Create matchday service with getCurrentMatchday, getMatchdayResults, advanceMatchdayStatus, calculateSquadPoints methods in src/services/matchday.service.ts
-- [ ] T040 [P] [US3] Create scoring service with calculatePlayerPoints (raw rating from stats), applyMultiplier (1x/0.5x/2x), calculateTotalSquadPoints methods in src/services/scoring.service.ts
-- [ ] T041 [P] [US3] Create match card component showing home vs away teams, scores, status, and kickoff time in src/components/matchday/match-card.tsx
-- [ ] T042 [P] [US3] Create squad points breakdown component showing each player with raw points, multiplier, and final points in src/components/matchday/squad-points.tsx
-- [ ] T043 [P] [US3] Create matchday status badge component showing OPEN/LOCK/LIVE/RESULTS with color coding in src/components/matchday/status-badge.tsx
-- [ ] T044 [US3] Create matchday API routes (GET current matchday, GET matchday by id with matches and stats) in src/app/api/matchday/route.ts
-- [ ] T045 [US3] Create matchday points API route (GET user's squad points for a matchday) in src/app/api/matchday/[id]/points/route.ts
-- [ ] T046 [US3] Create matchday simulation API endpoint (POST triggers LOCK→RESULTS transition, ingests mock scores, calculates all users' points) in src/app/api/matchday/simulate/route.ts
-- [ ] T047 [US3] Create matchday page composing match cards, squad points breakdown, matchday status, and simulation button (demo only) in src/app/(dashboard)/matchday/page.tsx
+- [x] T039 [P] [US3] Create matchday service with getCurrentMatchday, getMatchdayResults, advanceMatchdayStatus, calculateSquadPoints methods in src/services/matchday.service.ts
+- [x] T040 [P] [US3] Create scoring service with calculatePlayerPoints (raw rating from stats), applyMultiplier (1x/0.5x/2x), calculateTotalSquadPoints methods in src/services/scoring.service.ts
+- [x] T041 [P] [US3] Create match card component showing home vs away teams, scores, status, and kickoff time in src/components/matchday/match-card.tsx
+- [x] T042 [P] [US3] Create squad points breakdown component showing each player with raw points, multiplier, and final points in src/components/matchday/squad-points.tsx
+- [x] T043 [P] [US3] Create matchday status badge component showing OPEN/LOCK/LIVE/RESULTS with color coding in src/components/matchday/status-badge.tsx
+- [x] T044 [US3] Create matchday API routes (GET current matchday, GET matchday by id with matches and stats) in src/app/api/matchday/route.ts
+- [x] T045 [US3] Create matchday points API route (GET user's squad points for a matchday) in src/app/api/matchday/[id]/points/route.ts
+- [x] T046 [US3] Create matchday simulation API endpoint (POST triggers LOCK→RESULTS transition, ingests mock scores, calculates all users' points) in src/app/api/matchday/simulate/route.ts
+- [x] T047 [US3] Create matchday page composing match cards, squad points breakdown, matchday status, and simulation button (demo only) in src/app/(dashboard)/matchday/page.tsx
 
 **Checkpoint**: User can view matchday, see scores, see squad points with correct multipliers, simulate a matchday
 
