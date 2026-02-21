@@ -8,7 +8,7 @@ import { successResponse, parsePagination } from "@/lib/api-helpers";
  *
  * Returns the general tournament leaderboard, ranked by total points.
  *
- * Headers: x-user-email, x-user-password
+ * Auth: ?email=...&password=... (query params)
  * Query: page (default 1), pageSize (default 20)
  *
  * Example response:

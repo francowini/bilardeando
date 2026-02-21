@@ -4,22 +4,32 @@ import { prisma } from "@/lib/db";
 const DEMO_PASSWORD = "demo123";
 
 /**
- * Authenticate an AI request via plain-text headers.
- * Headers required:
- *   x-user-email: user's email
- *   x-user-password: plain text password (demo123)
+ * Authenticate an AI request via query params, headers, or JSON body.
+ *
+ * Priority:
+ *   1. Query params: ?email=...&password=...
+ *   2. Headers: x-user-email / x-user-password
  *
  * Returns { userId, user } or a 401 NextResponse.
  */
 export async function getAIAuth(request: NextRequest) {
-  const email = request.headers.get("x-user-email");
-  const password = request.headers.get("x-user-password");
+  const { searchParams } = request.nextUrl;
+
+  // 1. Query params (preferred — works with simple GET tools like web_fetch)
+  let email = searchParams.get("email");
+  let password = searchParams.get("password");
+
+  // 2. Fallback to headers
+  if (!email || !password) {
+    email = request.headers.get("x-user-email");
+    password = request.headers.get("x-user-password");
+  }
 
   if (!email || !password) {
     return NextResponse.json(
       {
-        error: "Missing authentication headers",
-        hint: "Send x-user-email and x-user-password headers",
+        error: "Missing authentication",
+        hint: "Send email & password as query params (?email=...&password=...) or as x-user-email / x-user-password headers",
       },
       { status: 401 },
     );

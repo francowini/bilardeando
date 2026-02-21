@@ -8,7 +8,7 @@ import { successResponse } from "@/lib/api-helpers";
  *
  * Returns the current matchday with its matches and scores.
  *
- * Headers: x-user-email, x-user-password
+ * Auth: ?email=...&password=... (query params)
  *
  * Example response:
  * {

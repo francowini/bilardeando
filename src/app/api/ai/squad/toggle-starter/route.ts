@@ -4,22 +4,37 @@ import { getMatchdayLockGuard, errorResponse, successResponse } from "@/lib/api-
 import { toggleStarter } from "@/services/squad.service";
 
 /**
- * POST /api/ai/squad/toggle-starter
+ * GET /api/ai/squad/toggle-starter?email=...&password=...&playerId=42
  *
  * Toggle a player between starter and bench.
  * If the player is a starter, they move to bench. If bench, they become a starter.
- * Must respect formation slot limits (e.g., 4-3-3 allows max 3 FWD starters).
- *
- * Headers: x-user-email, x-user-password
- * Body: { "playerId": 42 }
- *
- * Example curl:
- *   curl -X POST /api/ai/squad/toggle-starter \
- *     -H "x-user-email: franco@test.com" \
- *     -H "x-user-password: demo123" \
- *     -H "Content-Type: application/json" \
- *     -d '{"playerId": 42}'
+ * Must respect formation slot limits.
  */
+export async function GET(request: NextRequest) {
+  const auth = await getAIAuth(request);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
+
+  const lock = await getMatchdayLockGuard();
+  if (lock) return lock;
+
+  const playerId = parseInt(request.nextUrl.searchParams.get("playerId") || "", 10);
+  if (!playerId || isNaN(playerId)) {
+    return errorResponse("Missing or invalid playerId query param (must be a number)");
+  }
+
+  const result = await toggleStarter(userId, playerId);
+  if ("error" in result && result.error) {
+    return errorResponse(result.error);
+  }
+
+  return successResponse({
+    ...result,
+    hint: "Player toggled. Check GET /api/ai/squad to see the updated lineup.",
+  });
+}
+
+/** POST kept for backwards compatibility */
 export async function POST(request: NextRequest) {
   const auth = await getAIAuth(request);
   if (auth instanceof NextResponse) return auth;

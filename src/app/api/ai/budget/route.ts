@@ -9,7 +9,7 @@ import { SELL_TAX_RATE } from "@/lib/formations";
  *
  * Returns the user's current virtual budget, real balance, and squad value.
  *
- * Headers: x-user-email, x-user-password
+ * Auth: ?email=...&password=... (query params)
  *
  * Example response:
  * {

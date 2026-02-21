@@ -9,7 +9,7 @@ import { successResponse } from "@/lib/api-helpers";
  * Returns all available teams with their IDs.
  * Useful for filtering players by team.
  *
- * Headers: x-user-email, x-user-password
+ * Auth: ?email=...&password=... (query params)
  *
  * Example response:
  * {

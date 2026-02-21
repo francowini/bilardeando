@@ -4,21 +4,36 @@ import { getMatchdayLockGuard, errorResponse, successResponse } from "@/lib/api-
 import { swapPlayers } from "@/services/squad.service";
 
 /**
- * POST /api/ai/squad/swap
+ * GET /api/ai/squad/swap?email=...&password=...&playerIdA=42&playerIdB=18
  *
- * Swap two players' roles (starter ↔ bench). Both players must be in your squad.
- * Useful for substituting a bench player for a starter of the same position.
- *
- * Headers: x-user-email, x-user-password
- * Body: { "playerIdA": 42, "playerIdB": 18 }
- *
- * Example curl:
- *   curl -X POST /api/ai/squad/swap \
- *     -H "x-user-email: franco@test.com" \
- *     -H "x-user-password: demo123" \
- *     -H "Content-Type: application/json" \
- *     -d '{"playerIdA": 42, "playerIdB": 18}'
+ * Swap two players' roles (starter <-> bench). Both players must be in your squad.
  */
+export async function GET(request: NextRequest) {
+  const auth = await getAIAuth(request);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
+
+  const lock = await getMatchdayLockGuard();
+  if (lock) return lock;
+
+  const playerIdA = parseInt(request.nextUrl.searchParams.get("playerIdA") || "", 10);
+  const playerIdB = parseInt(request.nextUrl.searchParams.get("playerIdB") || "", 10);
+  if (!playerIdA || isNaN(playerIdA) || !playerIdB || isNaN(playerIdB)) {
+    return errorResponse("Missing or invalid playerIdA / playerIdB query params (both must be numbers)");
+  }
+
+  const result = await swapPlayers(userId, playerIdA, playerIdB);
+  if ("error" in result && result.error) {
+    return errorResponse(result.error);
+  }
+
+  return successResponse({
+    ...result,
+    hint: "Players swapped. Check GET /api/ai/squad to see updated lineup.",
+  });
+}
+
+/** POST kept for backwards compatibility */
 export async function POST(request: NextRequest) {
   const auth = await getAIAuth(request);
   if (auth instanceof NextResponse) return auth;

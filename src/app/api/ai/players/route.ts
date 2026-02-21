@@ -9,7 +9,7 @@ import type { Position } from "@/generated/prisma/client";
  *
  * List available players in the market. Supports filters and pagination.
  *
- * Headers: x-user-email, x-user-password
+ * Auth: ?email=...&password=... (query params)
  *
  * Query params:
  *   search    - Filter by player name or team name (partial match)

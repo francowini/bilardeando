@@ -9,7 +9,7 @@ import { successResponse, errorResponse } from "@/lib/api-helpers";
  * Returns the user's full squad: formation, players (starters & bench),
  * budget, captain info, and validation status.
  *
- * Headers: x-user-email, x-user-password
+ * Auth: ?email=...&password=... (query params)
  *
  * Example response:
  * {
