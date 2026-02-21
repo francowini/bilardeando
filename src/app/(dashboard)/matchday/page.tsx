@@ -116,8 +116,10 @@ export default function MatchdayPage() {
       if (res.ok) {
         setSimMessage(data.message);
         // Refresh data
-        await fetchMatchday(matchday?.id);
-        await fetchAllMatchdays();
+        await Promise.all([
+          fetchMatchday(matchday?.id),
+          fetchAllMatchdays(),
+        ]);
       } else {
         setSimMessage(data.error || "Error en simulación");
       }

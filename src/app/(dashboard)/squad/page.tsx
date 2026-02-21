@@ -240,7 +240,7 @@ export default function SquadPage() {
 
       {/* Toggle catalog button */}
       <button
-        onClick={() => setShowCatalog(!showCatalog)}
+        onClick={() => setShowCatalog((prev) => !prev)}
         className="btn-retro-accent w-full"
       >
         {showCatalog ? "Ocultar Catálogo" : "Abrir Catálogo de Jugadores"}
