@@ -262,11 +262,13 @@ async function main() {
   );
 
   // ── 6. Create Demo Users with Squads ──
-  // Only create demo users if they don't exist yet
+  // Juan: no squad (full $150M budget) for testing transfers
+  // María: squad built by rating (top-rated, ~$101M)
+  // Carlos: squad built by rating with offset (~$80M)
   const demoUsers = [
-    { email: "demo1@bilardeando.com", name: "Juan Demo" },
-    { email: "demo2@bilardeando.com", name: "María Demo" },
-    { email: "demo3@bilardeando.com", name: "Carlos Demo" },
+    { email: "demo1@bilardeando.com", name: "Juan Demo", buildSquad: false, ratingOffset: 0 },
+    { email: "demo2@bilardeando.com", name: "María Demo", buildSquad: true, ratingOffset: 0 },
+    { email: "demo3@bilardeando.com", name: "Carlos Demo", buildSquad: true, ratingOffset: 5 },
   ];
 
   for (const demoUser of demoUsers) {
@@ -288,25 +290,37 @@ async function main() {
       },
     });
 
-    // Build a random 4-3-3 squad from available players
+    if (!demoUser.buildSquad) {
+      console.log(
+        `Created demo user ${demoUser.name} without squad ($150M budget).`,
+      );
+      continue;
+    }
+
+    // Build a 4-3-3 squad sorted by rating (not price) to stay within budget
+    const offset = demoUser.ratingOffset;
     const gks = await prisma.player.findMany({
-      where: { position: "GK" },
-      orderBy: { fantasyPrice: "desc" },
+      where: { position: "GK", rating: { not: null } },
+      orderBy: { rating: "desc" },
+      skip: offset,
       take: 3,
     });
     const defs = await prisma.player.findMany({
-      where: { position: "DEF" },
-      orderBy: { fantasyPrice: "desc" },
+      where: { position: "DEF", rating: { not: null } },
+      orderBy: { rating: "desc" },
+      skip: offset,
       take: 6,
     });
     const mids = await prisma.player.findMany({
-      where: { position: "MID" },
-      orderBy: { fantasyPrice: "desc" },
+      where: { position: "MID", rating: { not: null } },
+      orderBy: { rating: "desc" },
+      skip: offset,
       take: 5,
     });
     const fwds = await prisma.player.findMany({
-      where: { position: "FWD" },
-      orderBy: { fantasyPrice: "desc" },
+      where: { position: "FWD", rating: { not: null } },
+      orderBy: { rating: "desc" },
+      skip: offset,
       take: 4,
     });
 
@@ -369,7 +383,7 @@ async function main() {
     });
 
     console.log(
-      `Created demo user ${demoUser.name} with squad (${starters.length} starters + ${bench.length} bench, $${totalValue.toFixed(1)}M spent).`,
+      `Created demo user ${demoUser.name} with squad (${starters.length} starters + ${bench.length} bench, $${totalValue.toFixed(1)}M spent, $${(150 - totalValue).toFixed(1)}M remaining).`,
     );
   }
 

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { PlayerCatalog } from "@/components/player/player-catalog";
+import Link from "next/link";
 import { FormationSelector } from "@/components/squad/formation-selector";
 import { PitchView } from "@/components/squad/pitch-view";
 import { BenchList } from "@/components/squad/bench-list";
 import { BudgetBar } from "@/components/squad/budget-bar";
-import { Shield, AlertTriangle, Check } from "lucide-react";
+import { Shield, AlertTriangle, Check, ArrowLeftRight } from "lucide-react";
 import type { FormationCode, SquadValidation } from "@/types";
 import { STARTING_BUDGET } from "@/lib/formations";
 
@@ -37,7 +37,7 @@ export default function SquadPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showCatalog, setShowCatalog] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const fetchSquad = useCallback(async () => {
     try {
@@ -58,6 +58,13 @@ export default function SquadPage() {
   useEffect(() => {
     fetchSquad();
   }, [fetchSquad]);
+
+  // Auto-dismiss toasts
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const handleFormationChange = async (formation: FormationCode) => {
     setActionLoading(true);
@@ -80,59 +87,12 @@ export default function SquadPage() {
           setError(data.error || "Error al cambiar formación");
           return;
         }
-      }
-      await fetchSquad();
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleAddPlayer = async (player: { id: number; position: string }) => {
-    setActionLoading(true);
-    setError(null);
-    try {
-      if (!squad) {
-        await fetch("/api/squad", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ formation: "4-3-3" }),
-        });
-      }
-
-      const starters = squad?.players.filter((p) => p.isStarter) ?? [];
-      const isStarter = starters.length < 11;
-
-      const res = await fetch("/api/squad/players", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId: player.id, isStarter }),
-      });
-
-      if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Error al agregar jugador");
-        return;
-      }
-
-      await fetchSquad();
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleRemovePlayer = async (playerId: number) => {
-    setActionLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/squad/players", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Error al quitar jugador");
-        return;
+        if (data.movedToBench?.length > 0) {
+          setToast(
+            `Movidos al banco: ${data.movedToBench.join(", ")}`,
+          );
+        }
       }
       await fetchSquad();
     } finally {
@@ -163,10 +123,29 @@ export default function SquadPage() {
     }
   };
 
+  const handleSwap = async (playerIdA: number, playerIdB: number) => {
+    setActionLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/squad/players", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: playerIdA, playerIdB, action: "swap" }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Error al intercambiar jugadores");
+        return;
+      }
+      await fetchSquad();
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const formation = (squad?.formation || "4-3-3") as FormationCode;
   const starters = squad?.players.filter((p) => p.isStarter) ?? [];
   const bench = squad?.players.filter((p) => !p.isStarter) ?? [];
-  const selectedPlayerIds = new Set(squad?.players.map((p) => p.id) ?? []);
   const totalSpent =
     squad?.players.reduce((s, p) => s + p.fantasyPrice, 0) ?? 0;
 
@@ -188,6 +167,20 @@ export default function SquadPage() {
           <span>{error}</span>
           <button
             onClick={() => setError(null)}
+            className="ml-auto text-xs font-heading font-bold"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="border-2 border-accent bg-accent/10 p-3 flex items-center gap-2 text-sm">
+          <Check className="w-4 h-4 text-accent flex-shrink-0" />
+          <span>{toast}</span>
+          <button
+            onClick={() => setToast(null)}
             className="ml-auto text-xs font-heading font-bold"
           >
             ✕
@@ -224,7 +217,7 @@ export default function SquadPage() {
         </div>
       )}
 
-      {/* Budget bar */}
+      {/* Budget bar (read-only) */}
       <BudgetBar
         totalBudget={STARTING_BUDGET}
         spent={totalSpent}
@@ -238,173 +231,153 @@ export default function SquadPage() {
         disabled={actionLoading}
       />
 
-      {/* Toggle catalog button */}
-      <button
-        onClick={() => setShowCatalog((prev) => !prev)}
-        className="btn-retro-accent w-full"
+      {/* Link to transfers */}
+      <Link
+        href="/transfers"
+        className="btn-retro-accent w-full flex items-center justify-center gap-2"
       >
-        {showCatalog ? "Ocultar Catálogo" : "Abrir Catálogo de Jugadores"}
-      </button>
+        <ArrowLeftRight className="w-4 h-4" />
+        Ir al Mercado de Pases
+      </Link>
 
-      {/* Main layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Catalog (left column on desktop) */}
-        {showCatalog && (
-          <div className="lg:col-span-1 lg:order-1">
-            <PlayerCatalog
-              selectedPlayerIds={selectedPlayerIds}
-              onSelectPlayer={handleAddPlayer}
-              remainingBudget={remainingBudget}
-            />
-          </div>
-        )}
-
-        {/* Pitch + Bench (center/right) */}
-        <div
-          className={
-            showCatalog
-              ? "lg:col-span-2 lg:order-2 space-y-4"
-              : "lg:col-span-3 space-y-4"
-          }
-        >
-          {/* Pitch */}
-          <PitchView
-            formation={formation}
-            starters={starters.map((p) => ({
-              id: p.id,
-              name: p.name,
-              position: p.position,
-              photo: p.photo,
-              rating: p.rating,
-              isCaptain: p.isCaptain,
-              isCaptainSub: p.isCaptainSub,
-            }))}
-            onPlayerClick={(playerId) => {
-              const player = starters.find((p) => p.id === playerId);
-              if (player && !player.isCaptain) {
-                handlePlayerAction(playerId, "captain");
-              }
-            }}
-          />
-
-          {/* Bench */}
-          <BenchList
-            players={bench.map((p) => ({
-              id: p.id,
-              name: p.name,
-              photo: p.photo,
-              position: p.position,
-              teamName: p.teamName,
-              rating: p.rating,
-              fantasyPrice: p.fantasyPrice,
-            }))}
-            onRemove={handleRemovePlayer}
-            onPlayerClick={(playerId) =>
-              handlePlayerAction(playerId, "toggleStarter")
+      {/* Pitch + Bench (full width) */}
+      <div className="space-y-4">
+        {/* Pitch */}
+        <PitchView
+          formation={formation}
+          starters={starters.map((p) => ({
+            id: p.id,
+            name: p.name,
+            position: p.position,
+            photo: p.photo,
+            rating: p.rating,
+            isCaptain: p.isCaptain,
+            isCaptainSub: p.isCaptainSub,
+          }))}
+          onPlayerClick={(playerId) => {
+            const player = starters.find((p) => p.id === playerId);
+            if (player && !player.isCaptain) {
+              handlePlayerAction(playerId, "captain");
             }
-          />
+          }}
+          onSwap={handleSwap}
+          onMoveToBench={(playerId) =>
+            handlePlayerAction(playerId, "toggleStarter")
+          }
+        />
 
-          {/* Starter list (quick actions) */}
-          <div className="card-retro">
-            <div className="card-retro-header flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Titulares — Acciones
-            </div>
-            <div className="card-retro-body">
-              {starters.length === 0 ? (
-                <div className="text-center text-sm text-muted-foreground py-4">
-                  Agregá jugadores del catálogo
-                </div>
-              ) : (
-                <table className="table-retro">
-                  <thead>
-                    <tr>
-                      <th>Jugador</th>
-                      <th>Pos</th>
-                      <th>Rating</th>
-                      <th>Precio</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {starters.map((p) => (
-                      <tr key={p.id}>
-                        <td className="font-heading font-bold text-xs">
-                          {p.name}
-                          {p.isCaptain && (
-                            <span className="ml-1 badge-position bg-accent text-accent-foreground">
-                              C
-                            </span>
-                          )}
-                          {p.isCaptainSub && (
-                            <span className="ml-1 badge-position bg-accent/60 text-accent-foreground">
-                              CS
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          <span
-                            className={`badge-${p.position.toLowerCase()}`}
-                          >
-                            {p.position}
+        {/* Bench */}
+        <BenchList
+          players={bench.map((p) => ({
+            id: p.id,
+            name: p.name,
+            photo: p.photo,
+            position: p.position,
+            teamName: p.teamName,
+            rating: p.rating,
+            fantasyPrice: p.fantasyPrice,
+          }))}
+          onPlayerClick={(playerId) =>
+            handlePlayerAction(playerId, "toggleStarter")
+          }
+          onSwap={handleSwap}
+        />
+
+        {/* Starter list (quick actions) */}
+        <div className="card-retro">
+          <div className="card-retro-header flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Titulares — Acciones
+          </div>
+          <div className="card-retro-body">
+            {starters.length === 0 ? (
+              <div className="text-center text-sm text-muted-foreground py-4">
+                Comprá jugadores en el{" "}
+                <Link href="/transfers" className="underline text-accent font-bold">
+                  Mercado de Pases
+                </Link>
+              </div>
+            ) : (
+              <table className="table-retro">
+                <thead>
+                  <tr>
+                    <th>Jugador</th>
+                    <th>Pos</th>
+                    <th>Rating</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {starters.map((p) => (
+                    <tr key={p.id}>
+                      <td className="font-heading font-bold text-xs">
+                        {p.name}
+                        {p.isCaptain && (
+                          <span className="ml-1 badge-position bg-accent text-accent-foreground">
+                            C
                           </span>
-                        </td>
-                        <td className="text-center font-heading">
-                          {p.rating?.toFixed(1) || "-"}
-                        </td>
-                        <td className="text-center text-xs">
-                          ${p.fantasyPrice.toFixed(1)}M
-                        </td>
-                        <td className="space-x-1">
-                          {!p.isCaptain && (
-                            <button
-                              onClick={() =>
-                                handlePlayerAction(p.id, "captain")
-                              }
-                              className="btn-retro text-[10px] px-1 py-0.5 bg-accent text-accent-foreground border-accent"
-                              disabled={actionLoading}
-                              title="Hacer capitán"
-                            >
-                              C
-                            </button>
-                          )}
-                          {!p.isCaptainSub && (
-                            <button
-                              onClick={() =>
-                                handlePlayerAction(p.id, "captainSub")
-                              }
-                              className="btn-retro text-[10px] px-1 py-0.5 bg-muted text-foreground border-border"
-                              disabled={actionLoading}
-                              title="Capitán suplente"
-                            >
-                              CS
-                            </button>
-                          )}
+                        )}
+                        {p.isCaptainSub && (
+                          <span className="ml-1 badge-position bg-accent/60 text-accent-foreground">
+                            CS
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <span
+                          className={`badge-${p.position.toLowerCase()}`}
+                        >
+                          {p.position}
+                        </span>
+                      </td>
+                      <td className="text-center font-heading">
+                        {p.rating?.toFixed(1) || "-"}
+                      </td>
+                      <td className="text-center text-xs">
+                        ${p.fantasyPrice.toFixed(1)}M
+                      </td>
+                      <td className="space-x-1">
+                        {!p.isCaptain && (
                           <button
                             onClick={() =>
-                              handlePlayerAction(p.id, "toggleStarter")
+                              handlePlayerAction(p.id, "captain")
+                            }
+                            className="btn-retro text-[10px] px-1 py-0.5 bg-accent text-accent-foreground border-accent"
+                            disabled={actionLoading}
+                            title="Hacer capitán"
+                          >
+                            C
+                          </button>
+                        )}
+                        {!p.isCaptainSub && (
+                          <button
+                            onClick={() =>
+                              handlePlayerAction(p.id, "captainSub")
                             }
                             className="btn-retro text-[10px] px-1 py-0.5 bg-muted text-foreground border-border"
                             disabled={actionLoading}
-                            title="Mover al banco"
+                            title="Capitán suplente"
                           >
-                            ↓
+                            CS
                           </button>
-                          <button
-                            onClick={() => handleRemovePlayer(p.id)}
-                            className="btn-retro text-[10px] px-1 py-0.5 bg-destructive text-destructive-foreground border-destructive"
-                            disabled={actionLoading}
-                            title="Quitar del equipo"
-                          >
-                            ✕
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                        )}
+                        <button
+                          onClick={() =>
+                            handlePlayerAction(p.id, "toggleStarter")
+                          }
+                          className="btn-retro text-[10px] px-1 py-0.5 bg-muted text-foreground border-border"
+                          disabled={actionLoading}
+                          title="Mover al banco"
+                        >
+                          ↓
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

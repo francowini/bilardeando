@@ -83,7 +83,7 @@ export async function getOrCreateSquad(userId: string, formation: FormationCode 
   return squad;
 }
 
-// ── Update formation ──
+// ── Update formation (auto-moves excess starters to bench) ──
 
 export async function updateFormation(userId: string, formation: FormationCode) {
   if (!isValidFormation(formation)) {
@@ -95,8 +95,8 @@ export async function updateFormation(userId: string, formation: FormationCode) 
     return { error: "No tenés equipo creado" };
   }
 
-  // Check if current starters fit the new formation
   const starters = squad.squadPlayers.filter((sp) => sp.isStarter);
+  const benchCount = squad.squadPlayers.filter((sp) => !sp.isStarter).length;
   const slots = FORMATIONS[formation].slots;
   const countByPos: Record<string, number> = { GK: 0, DEF: 0, MID: 0, FWD: 0 };
 
@@ -104,26 +104,45 @@ export async function updateFormation(userId: string, formation: FormationCode) 
     countByPos[sp.player.position]++;
   }
 
-  // Check if any position exceeds the new formation's slots
-  const errors: string[] = [];
+  // Find excess starters per position, pick lowest-rated first
+  const toBench: { id: number; name: string }[] = [];
   for (const pos of ["GK", "DEF", "MID", "FWD"] as const) {
-    if (countByPos[pos] > slots[pos]) {
-      errors.push(
-        `Tenés ${countByPos[pos]} ${pos} titulares pero ${formation} permite ${slots[pos]}`,
-      );
+    const excess = countByPos[pos] - slots[pos];
+    if (excess > 0) {
+      const posStarters = starters
+        .filter((sp) => sp.player.position === pos)
+        .sort((a, b) => (a.player.rating ?? 0) - (b.player.rating ?? 0));
+      for (let i = 0; i < excess; i++) {
+        toBench.push({ id: posStarters[i].id, name: posStarters[i].player.name });
+      }
     }
   }
 
-  if (errors.length > 0) {
-    return { error: errors.join(". ") + ". Movélos al banco primero." };
+  // Check bench capacity
+  if (benchCount + toBench.length > MAX_BENCH) {
+    return {
+      error: `No hay lugar en el banco para mover ${toBench.length} jugador(es). Vendé suplentes primero.`,
+    };
   }
 
-  await prisma.squad.update({
-    where: { id: squad.id },
-    data: { formation },
-  });
+  // Transaction: move excess to bench + update formation
+  await prisma.$transaction([
+    ...toBench.map((sp) =>
+      prisma.squadPlayer.update({
+        where: { id: sp.id },
+        data: { isStarter: false, isCaptain: false, isCaptainSub: false },
+      }),
+    ),
+    prisma.squad.update({
+      where: { id: squad.id },
+      data: { formation },
+    }),
+  ]);
 
-  return { success: true };
+  return {
+    success: true,
+    movedToBench: toBench.map((sp) => sp.name),
+  };
 }
 
 // ── Add player to squad ──
@@ -403,4 +422,74 @@ export async function validateSquad(userId: string): Promise<SquadValidation> {
   }
 
   return { valid: errors.length === 0, errors };
+}
+
+// ── Swap two players (starter↔starter or starter↔bench) ──
+
+export async function swapPlayers(
+  userId: string,
+  playerIdA: number,
+  playerIdB: number,
+) {
+  const squad = await getSquadByUser(userId);
+  if (!squad) return { error: "No tenés equipo" };
+
+  const spA = squad.squadPlayers.find((s) => s.playerId === playerIdA);
+  const spB = squad.squadPlayers.find((s) => s.playerId === playerIdB);
+  if (!spA || !spB) return { error: "Jugador no está en tu equipo" };
+
+  // If both are starters, validate positions fit formation
+  if (spA.isStarter && spB.isStarter) {
+    // Same position → always valid swap
+    if (spA.player.position !== spB.player.position) {
+      return { error: "No se pueden intercambiar titulares de distinta posición" };
+    }
+  }
+
+  // If swapping starter↔bench, check formation allows the bench player's position
+  if (spA.isStarter !== spB.isStarter) {
+    const starter = spA.isStarter ? spA : spB;
+    const benched = spA.isStarter ? spB : spA;
+    const formation = squad.formation as FormationCode;
+    const slots = FORMATIONS[formation]?.slots;
+
+    if (slots && starter.player.position !== benched.player.position) {
+      // Count current starters by position, subtract the one leaving, add the one entering
+      const countByPos: Record<string, number> = { GK: 0, DEF: 0, MID: 0, FWD: 0 };
+      for (const sp of squad.squadPlayers.filter((s) => s.isStarter)) {
+        countByPos[sp.player.position]++;
+      }
+      countByPos[starter.player.position]--;
+      countByPos[benched.player.position]++;
+
+      for (const pos of ["GK", "DEF", "MID", "FWD"] as const) {
+        if (countByPos[pos] > slots[pos]) {
+          return { error: `El swap violaría la formación ${formation}: exceso de ${pos}` };
+        }
+      }
+    }
+  }
+
+  // Perform swap
+  await prisma.$transaction([
+    prisma.squadPlayer.update({
+      where: { id: spA.id },
+      data: {
+        isStarter: spB.isStarter,
+        // Clear captain flags if moving to bench
+        isCaptain: spB.isStarter ? spA.isCaptain : false,
+        isCaptainSub: spB.isStarter ? spA.isCaptainSub : false,
+      },
+    }),
+    prisma.squadPlayer.update({
+      where: { id: spB.id },
+      data: {
+        isStarter: spA.isStarter,
+        isCaptain: spA.isStarter ? spB.isCaptain : false,
+        isCaptainSub: spA.isStarter ? spB.isCaptainSub : false,
+      },
+    }),
+  ]);
+
+  return { success: true };
 }

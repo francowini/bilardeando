@@ -9,6 +9,7 @@ import {
   removePlayerFromSquad,
   setCaptain,
   toggleStarter,
+  swapPlayers,
 } from "@/services/squad.service";
 
 // POST /api/squad/players — add player to squad
@@ -61,14 +62,27 @@ export async function PATCH(request: NextRequest) {
   const playerId = body.playerId as number;
   const action = body.action as string;
 
-  if (!playerId || typeof playerId !== "number") {
-    return errorResponse("playerId es requerido");
+  if (!action || !["captain", "captainSub", "toggleStarter", "swap"].includes(action)) {
+    return errorResponse(
+      "action debe ser 'captain', 'captainSub', 'toggleStarter', o 'swap'",
+    );
   }
 
-  if (!action || !["captain", "captainSub", "toggleStarter"].includes(action)) {
-    return errorResponse(
-      "action debe ser 'captain', 'captainSub', o 'toggleStarter'",
-    );
+  // Swap needs two player IDs, others need one
+  if (action === "swap") {
+    const playerIdB = body.playerIdB as number;
+    if (!playerId || typeof playerId !== "number" || !playerIdB || typeof playerIdB !== "number") {
+      return errorResponse("playerId y playerIdB son requeridos para swap");
+    }
+    const result = await swapPlayers(auth.userId, playerId, playerIdB);
+    if ("error" in result && result.error) {
+      return errorResponse(result.error);
+    }
+    return successResponse({ success: true });
+  }
+
+  if (!playerId || typeof playerId !== "number") {
+    return errorResponse("playerId es requerido");
   }
 
   let result;
