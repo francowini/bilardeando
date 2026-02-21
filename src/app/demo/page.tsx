@@ -51,14 +51,14 @@ const STEPS = [
   {
     status: "LIVE",
     label: "En Vivo",
-    desc: "2 de 14 partidos están en juego. Los puntajes se actualizan en vivo.",
+    desc: "Mitad de los partidos ya terminaron, algunos en vivo y otros por jugar. Los puntajes se van acumulando.",
     action: "Finalizar fecha (RESULTS)",
   },
   {
     status: "RESULTS",
     label: "Resultados",
     desc: "Todos los partidos terminaron. Se computaron los puntajes de los 3 usuarios.",
-    action: null,
+    action: "Crear siguiente fecha",
   },
 ];
 

@@ -146,14 +146,37 @@ export async function advanceMatchdayStatus(
 
   // Handle match transitions
   if (newStatus === "LIVE") {
-    // Mark first 2 matches as LIVE with partial scores (simulating matches in progress)
+    // Split matches into FINISHED (~half), LIVE (~some), SCHEDULED (rest)
+    // This makes the demo more realistic — mid-matchday with mixed states
     const scheduledMatches = matchday.matches.filter(
       (m) => m.status === "SCHEDULED",
     );
-    const toLive = scheduledMatches.slice(0, 2);
+    const total = scheduledMatches.length;
+    const finishedCount = Math.ceil(total * 0.5); // ~half finished
+    const liveCount = Math.min(4, total - finishedCount); // up to 4 live
+    // rest stay SCHEDULED
 
+    const toFinish = scheduledMatches.slice(0, finishedCount);
+    const toLive = scheduledMatches.slice(finishedCount, finishedCount + liveCount);
+
+    // Mark matches as FINISHED with final scores
+    for (const match of toFinish) {
+      const fs = finalScores[String(match.id)];
+      await prisma.match.update({
+        where: { id: match.id },
+        data: {
+          status: "FINISHED",
+          homeScore: fs?.homeScore ?? Math.floor(Math.random() * 4),
+          awayScore: fs?.awayScore ?? Math.floor(Math.random() * 4),
+        },
+      });
+    }
+
+    // Generate player stats for finished matches so points can be calculated
+    await generateMissingPlayerStats(toFinish.map((m) => m.id));
+
+    // Mark some matches as LIVE with partial scores
     for (const match of toLive) {
-      // Use final scores or generate partial scores for LIVE matches
       const fs = finalScores[String(match.id)];
       const homeScore = fs
         ? Math.min(fs.homeScore, Math.max(1, Math.floor(fs.homeScore * 0.6)))
@@ -192,6 +215,59 @@ export async function advanceMatchdayStatus(
   }
 
   return { success: true };
+}
+
+// ── Create next matchday dynamically ──
+
+export async function createNextMatchday() {
+  // Find the latest matchday to determine the next number and dates
+  const lastMatchday = await prisma.matchday.findFirst({
+    orderBy: { startDate: "desc" },
+  });
+
+  const nextNumber = lastMatchday
+    ? parseInt(lastMatchday.name.replace("Fecha ", ""), 10) + 1
+    : 1;
+  const nextStart = lastMatchday
+    ? new Date(lastMatchday.startDate.getTime() + 7 * 24 * 60 * 60 * 1000)
+    : new Date();
+  const nextEnd = new Date(nextStart.getTime() + 5 * 60 * 60 * 1000);
+
+  // Create the matchday
+  const newMatchday = await prisma.matchday.create({
+    data: {
+      name: `Fecha ${nextNumber}`,
+      status: "OPEN",
+      startDate: nextStart,
+      endDate: nextEnd,
+    },
+  });
+
+  // Get all teams and create random pairings (14 matches = 28 teams)
+  const teams = await prisma.team.findMany({ select: { id: true } });
+  const shuffled = teams.sort(() => Math.random() - 0.5);
+  const matchCount = Math.min(14, Math.floor(shuffled.length / 2));
+
+  for (let i = 0; i < matchCount; i++) {
+    const homeTeam = shuffled[i * 2];
+    const awayTeam = shuffled[i * 2 + 1];
+    // Stagger kickoff times across the date
+    const kickoff = new Date(nextStart.getTime() + i * 30 * 60 * 1000);
+
+    await prisma.match.create({
+      data: {
+        homeScore: 0,
+        awayScore: 0,
+        status: "SCHEDULED",
+        kickoff,
+        matchday: { connect: { id: newMatchday.id } },
+        homeTeam: { connect: { id: homeTeam.id } },
+        awayTeam: { connect: { id: awayTeam.id } },
+      },
+    });
+  }
+
+  return newMatchday;
 }
 
 // ── Generate simulated stats for players who don't have them ──

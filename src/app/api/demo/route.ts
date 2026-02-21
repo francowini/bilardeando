@@ -5,6 +5,7 @@ import {
   getCurrentMatchday,
   getAllMatchdays,
   advanceMatchdayStatus,
+  createNextMatchday,
 } from "@/services/matchday.service";
 import { calculateAllUsersPoints } from "@/services/scoring.service";
 
@@ -75,6 +76,23 @@ export async function POST(request: NextRequest) {
   const action = (body as { action?: string }).action || "advance";
 
   if (action === "reset") {
+    // Delete dynamically created matchdays (Fecha 3+) and their data
+    const dynamicMatchdays = await prisma.matchday.findMany({
+      where: { name: { not: { in: ["Fecha 1", "Fecha 2"] } } },
+      select: { id: true },
+    });
+    for (const md of dynamicMatchdays) {
+      await prisma.squadPlayerPoints.deleteMany({
+        where: { matchdayPoints: { matchdayId: md.id } },
+      });
+      await prisma.matchdayPoints.deleteMany({ where: { matchdayId: md.id } });
+      await prisma.playerMatchStat.deleteMany({
+        where: { match: { matchdayId: md.id } },
+      });
+      await prisma.match.deleteMany({ where: { matchdayId: md.id } });
+      await prisma.matchday.delete({ where: { id: md.id } });
+    }
+
     // Reset matchday 2 to OPEN and all its matches to SCHEDULED
     const matchday2 = await prisma.matchday.findFirst({
       where: { name: "Fecha 2" },
@@ -89,14 +107,15 @@ export async function POST(request: NextRequest) {
         where: { matchdayId: matchday2.id },
         data: { status: "SCHEDULED", homeScore: 0, awayScore: 0 },
       });
-      // Clear matchday points
+      // Clear matchday points and stats
       await prisma.squadPlayerPoints.deleteMany({
-        where: {
-          matchdayPoints: { matchdayId: matchday2.id },
-        },
+        where: { matchdayPoints: { matchdayId: matchday2.id } },
       });
       await prisma.matchdayPoints.deleteMany({
         where: { matchdayId: matchday2.id },
+      });
+      await prisma.playerMatchStat.deleteMany({
+        where: { match: { matchdayId: matchday2.id } },
       });
     }
     return successResponse({ message: "Demo reseteada a estado inicial" });
@@ -106,6 +125,17 @@ export async function POST(request: NextRequest) {
     const current = await getCurrentMatchday();
     if (!current) {
       return errorResponse("No hay fecha activa");
+    }
+
+    // If current matchday is RESULTS, create the next matchday
+    if (current.status === "RESULTS") {
+      const newMd = await createNextMatchday();
+      return successResponse({
+        previousStatus: "RESULTS",
+        newStatus: "OPEN",
+        matchdayName: newMd.name,
+        message: `${newMd.name} creada — lista para armar equipos`,
+      });
     }
 
     const transitions: Record<string, "LOCK" | "LIVE" | "RESULTS"> = {
