@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/wallet — body: { amount: number } — creates load balance request, returns MP link
+ * POST /api/wallet — body: { amount: number } — loads balance directly (no MP)
  */
 export async function POST(request: NextRequest) {
   const auth = await getAuthOrError();

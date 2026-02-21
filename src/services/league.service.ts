@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/db";
 import { LeagueStatus, TransactionType, TransactionStatus } from "@/generated/prisma/client";
-import { getPaymentService } from "@/services/payment.service";
 
 const MIN_BUYIN = 10000;
 const MAX_BUYIN = 100000;
@@ -121,47 +120,50 @@ export async function joinLeague(userId: string, code: string) {
 }
 
 /**
- * Create a Mercado Pago payment link for league buy-in.
+ * Process buy-in payment directly from real balance (no MP).
+ * Deducts from user balance, creates approved transaction, marks member as paid.
  */
 async function createBuyInPayment(
   userId: string,
   leagueId: number,
   buyIn: number,
 ) {
-  const transaction = await prisma.transaction.create({
-    data: {
-      type: TransactionType.LEAGUE_BUYIN,
-      status: TransactionStatus.PENDING,
-      amountArs: buyIn,
-      description: `Buy-in liga #${leagueId}`,
-      userId,
-    },
+  // Check user has enough balance
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { realBalance: true },
   });
 
-  const paymentService = getPaymentService();
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+  if (!user || user.realBalance < buyIn) {
+    throw new Error(
+      `Saldo insuficiente. Necesitás $${buyIn.toLocaleString("es-AR")} ARS para el buy-in`,
+    );
+  }
 
-  const paymentLink = await paymentService.createPaymentLink({
-    title: "Buy-in de Liga — Bilardeando",
-    description: `Buy-in $${buyIn.toLocaleString()} ARS`,
-    amountArs: buyIn,
-    externalReference: `league:${leagueId}:tx:${transaction.id}`,
-    backUrls: {
-      success: `${baseUrl}/leagues?status=success`,
-      failure: `${baseUrl}/leagues?status=failure`,
-      pending: `${baseUrl}/leagues?status=pending`,
-    },
-  });
-
-  await prisma.transaction.update({
-    where: { id: transaction.id },
-    data: { mpPreferenceId: paymentLink.preferenceId },
-  });
+  // Create approved transaction, debit balance, mark member as paid
+  const [transaction] = await prisma.$transaction([
+    prisma.transaction.create({
+      data: {
+        type: TransactionType.LEAGUE_BUYIN,
+        status: TransactionStatus.APPROVED,
+        amountArs: buyIn,
+        description: `Buy-in liga #${leagueId}`,
+        userId,
+      },
+    }),
+    prisma.user.update({
+      where: { id: userId },
+      data: { realBalance: { decrement: buyIn } },
+    }),
+    prisma.leagueMember.updateMany({
+      where: { userId, leagueId },
+      data: { paid: true },
+    }),
+  ]);
 
   return {
     transactionId: transaction.id,
-    preferenceId: paymentLink.preferenceId,
-    initPoint: paymentLink.initPoint,
+    paid: true,
   };
 }
 

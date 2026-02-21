@@ -1,0 +1,19 @@
+{
+  "comment": "Final scores for matchday 2 matches, used by simulation to set realistic scores during LIVE and RESULTS transitions",
+  "scores": {
+    "15": { "homeScore": 3, "awayScore": 2 },
+    "16": { "homeScore": 3, "awayScore": 0 },
+    "17": { "homeScore": 0, "awayScore": 0 },
+    "18": { "homeScore": 2, "awayScore": 2 },
+    "19": { "homeScore": 2, "awayScore": 3 },
+    "20": { "homeScore": 0, "awayScore": 2 },
+    "21": { "homeScore": 2, "awayScore": 3 },
+    "22": { "homeScore": 0, "awayScore": 1 },
+    "23": { "homeScore": 3, "awayScore": 1 },
+    "24": { "homeScore": 0, "awayScore": 0 },
+    "25": { "homeScore": 0, "awayScore": 3 },
+    "26": { "homeScore": 2, "awayScore": 0 },
+    "27": { "homeScore": 1, "awayScore": 2 },
+    "28": { "homeScore": 2, "awayScore": 0 }
+  }
+}

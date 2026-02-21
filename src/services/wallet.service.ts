@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/db";
 import { TransactionType, TransactionStatus } from "@/generated/prisma/client";
-import { getPaymentService } from "@/services/payment.service";
-
-const FEE_RATE = 0.03; // 3%
-const FEE_WAIVER_THRESHOLD = 20000; // ARS
 
 export interface WalletBalance {
   virtualBudget: number;
@@ -13,11 +9,8 @@ export interface WalletBalance {
 
 export interface LoadBalanceResult {
   transactionId: number;
-  preferenceId: string;
-  initPoint: string;
   amountArs: number;
-  fee: number;
-  totalArs: number;
+  newBalance: number;
 }
 
 export interface TransactionPage {
@@ -43,7 +36,7 @@ export async function checkFeeWaiver(userId: string): Promise<boolean> {
     where: { id: userId },
     select: { realBalance: true },
   });
-  return (user?.realBalance ?? 0) >= FEE_WAIVER_THRESHOLD;
+  return (user?.realBalance ?? 0) >= 20000;
 }
 
 /**
@@ -62,13 +55,12 @@ export async function getBalance(userId: string): Promise<WalletBalance> {
   return {
     virtualBudget: user.virtualBudget,
     realBalance: user.realBalance,
-    feeWaived: user.realBalance >= FEE_WAIVER_THRESHOLD,
+    feeWaived: user.realBalance >= 20000,
   };
 }
 
 /**
- * Create a wallet load transaction and return a Mercado Pago payment link.
- * Applies 3% service fee unless user has balance >= $20,000 ARS.
+ * Load balance directly (no MP). Credits the user immediately.
  */
 export async function loadBalance(
   userId: string,
@@ -78,52 +70,27 @@ export async function loadBalance(
     throw new Error("El monto debe ser mayor a 0");
   }
 
-  const feeWaived = await checkFeeWaiver(userId);
-  const fee = feeWaived ? 0 : Math.round(amountArs * FEE_RATE * 100) / 100;
-  const totalArs = amountArs + fee;
-
-  // Create pending transaction
-  const transaction = await prisma.transaction.create({
-    data: {
-      type: TransactionType.WALLET_LOAD,
-      status: TransactionStatus.PENDING,
-      amountArs,
-      description: fee > 0
-        ? `Carga de saldo $${amountArs} + comisión $${fee}`
-        : `Carga de saldo $${amountArs} (sin comisión)`,
-      userId,
-    },
-  });
-
-  // Create MP payment link
-  const paymentService = getPaymentService();
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-
-  const paymentLink = await paymentService.createPaymentLink({
-    title: "Carga de saldo — Bilardeando",
-    description: `Carga $${amountArs} ARS a tu billetera`,
-    amountArs: totalArs,
-    externalReference: String(transaction.id),
-    backUrls: {
-      success: `${baseUrl}/wallet?status=success`,
-      failure: `${baseUrl}/wallet?status=failure`,
-      pending: `${baseUrl}/wallet?status=pending`,
-    },
-  });
-
-  // Save preference ID to transaction
-  await prisma.transaction.update({
-    where: { id: transaction.id },
-    data: { mpPreferenceId: paymentLink.preferenceId },
-  });
+  // Create approved transaction and credit balance in one go
+  const [transaction, user] = await prisma.$transaction([
+    prisma.transaction.create({
+      data: {
+        type: TransactionType.WALLET_LOAD,
+        status: TransactionStatus.APPROVED,
+        amountArs,
+        description: `Carga de saldo $${amountArs.toLocaleString("es-AR")}`,
+        userId,
+      },
+    }),
+    prisma.user.update({
+      where: { id: userId },
+      data: { realBalance: { increment: amountArs } },
+    }),
+  ]);
 
   return {
     transactionId: transaction.id,
-    preferenceId: paymentLink.preferenceId,
-    initPoint: paymentLink.initPoint,
     amountArs,
-    fee,
-    totalArs,
+    newBalance: user.realBalance,
   };
 }
 
@@ -162,41 +129,4 @@ export async function getTransactions(
     pageSize,
     totalPages: Math.ceil(total / pageSize),
   };
-}
-
-/**
- * Credit user real balance after successful webhook confirmation (WALLET_LOAD).
- * Idempotent: only credits if transaction is still PENDING.
- */
-export async function creditBalance(
-  userId: string,
-  transactionId: number,
-): Promise<void> {
-  const transaction = await prisma.transaction.findUnique({
-    where: { id: transactionId },
-  });
-
-  if (!transaction || transaction.userId !== userId) {
-    throw new Error("Transaction not found");
-  }
-
-  if (transaction.status === TransactionStatus.APPROVED) {
-    // Already credited — idempotent
-    return;
-  }
-
-  if (transaction.type !== TransactionType.WALLET_LOAD) {
-    throw new Error("Transaction is not a wallet load");
-  }
-
-  await prisma.$transaction([
-    prisma.transaction.update({
-      where: { id: transactionId },
-      data: { status: TransactionStatus.APPROVED },
-    }),
-    prisma.user.update({
-      where: { id: userId },
-      data: { realBalance: { increment: transaction.amountArs } },
-    }),
-  ]);
 }

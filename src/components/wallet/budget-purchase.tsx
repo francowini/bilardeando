@@ -52,10 +52,6 @@ export default function BudgetPurchase({
         return;
       }
 
-      if (data.initPoint) {
-        window.location.href = data.initPoint;
-      }
-
       onPurchaseSuccess?.();
     } catch {
       setError("Error de conexion");

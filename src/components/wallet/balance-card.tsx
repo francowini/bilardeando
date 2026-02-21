@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Wallet, DollarSign, ArrowUpCircle, Shield } from "lucide-react";
+import { Wallet, DollarSign, ArrowUpCircle, CheckCircle } from "lucide-react";
 
 interface BalanceCardProps {
   virtualBudget: number;
@@ -13,13 +13,13 @@ interface BalanceCardProps {
 export default function BalanceCard({
   virtualBudget,
   realBalance,
-  feeWaived,
   onLoadSuccess,
 }: BalanceCardProps) {
   const [showInput, setShowInput] = useState(false);
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleLoad = async () => {
     const numAmount = parseFloat(amount);
@@ -30,6 +30,7 @@ export default function BalanceCard({
 
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       const res = await fetch("/api/wallet", {
@@ -45,11 +46,9 @@ export default function BalanceCard({
         return;
       }
 
-      // Redirect to MP payment page
-      if (data.initPoint) {
-        window.location.href = data.initPoint;
-      }
-
+      setSuccess(`Saldo cargado: $${numAmount.toLocaleString("es-AR")} ARS`);
+      setAmount("");
+      setShowInput(false);
       onLoadSuccess?.();
     } catch {
       setError("Error de conexión");
@@ -58,9 +57,6 @@ export default function BalanceCard({
     }
   };
 
-  const fee = !feeWaived && amount
-    ? Math.round(parseFloat(amount) * 0.03 * 100) / 100
-    : 0;
   const parsedAmount = parseFloat(amount) || 0;
 
   return (
@@ -84,14 +80,6 @@ export default function BalanceCard({
             <p className="font-heading text-4xl font-bold text-espn-green">
               ${realBalance.toLocaleString("es-AR")}
             </p>
-            {feeWaived && (
-              <div className="mt-2 inline-flex items-center gap-1 border-2 border-espn-green bg-espn-green/10 px-2 py-0.5">
-                <Shield className="w-3 h-3 text-espn-green" />
-                <span className="font-heading text-xs font-bold text-espn-green uppercase">
-                  Sin comision
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Virtual budget */}
@@ -110,6 +98,14 @@ export default function BalanceCard({
             </p>
           </div>
         </div>
+
+        {/* Success message */}
+        {success && (
+          <div className="flex items-center gap-2 p-3 mb-3 bg-green-800/10 border-2 border-green-800 text-green-800 text-sm font-bold">
+            <CheckCircle className="w-4 h-4" />
+            {success}
+          </div>
+        )}
 
         {/* Load balance section */}
         {!showInput ? (
@@ -153,28 +149,13 @@ export default function BalanceCard({
               ))}
             </div>
 
-            {/* Fee breakdown */}
+            {/* Amount display */}
             {parsedAmount > 0 && (
-              <div className="border-t border-border pt-2 text-sm space-y-1">
+              <div className="border-t border-border pt-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Monto:</span>
-                  <span className="font-bold">${parsedAmount.toLocaleString("es-AR")}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    Comision (3%):
-                  </span>
-                  <span className={`font-bold ${feeWaived ? "line-through text-muted-foreground" : ""}`}>
-                    ${fee.toLocaleString("es-AR")}
-                  </span>
-                  {feeWaived && (
-                    <span className="font-bold text-espn-green text-xs">GRATIS</span>
-                  )}
-                </div>
-                <div className="flex justify-between border-t border-border pt-1">
-                  <span className="font-heading font-bold">Total a pagar:</span>
+                  <span className="font-heading font-bold">A cargar:</span>
                   <span className="font-heading font-bold text-espn-green">
-                    ${(parsedAmount + fee).toLocaleString("es-AR")}
+                    ${parsedAmount.toLocaleString("es-AR")} ARS
                   </span>
                 </div>
               </div>

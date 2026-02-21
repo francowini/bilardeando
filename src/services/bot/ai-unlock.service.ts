@@ -1,27 +1,24 @@
 import { prisma } from "@/lib/db";
 import { TransactionType, TransactionStatus } from "@/generated/prisma/client";
-import { getPaymentService } from "@/services/payment.service";
 
 const AI_UNLOCK_PRICE_ARS = 500;
 
 export interface AiUnlockResult {
   transactionId: number;
-  preferenceId: string;
-  initPoint: string;
   amountArs: number;
+  unlocked: boolean;
 }
 
 /**
- * Create an AI unlock purchase and return an MP payment link.
- * No fee applied — fixed price product.
+ * Purchase AI unlock directly from real balance (no MP).
+ * Deducts from user balance, creates approved transaction, sets aiUnlocked.
  */
 export async function purchaseAiUnlock(
   userId: string,
 ): Promise<AiUnlockResult> {
-  // Check if already unlocked
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { aiUnlocked: true },
+    select: { aiUnlocked: true, realBalance: true },
   });
 
   if (!user) {
@@ -32,83 +29,36 @@ export async function purchaseAiUnlock(
     throw new Error("AI Premium ya está activado");
   }
 
-  // Check for existing pending AI_UNLOCK transaction
-  const existingPending = await prisma.transaction.findFirst({
-    where: {
-      userId,
-      type: TransactionType.AI_UNLOCK,
-      status: TransactionStatus.PENDING,
-    },
-  });
-
-  if (existingPending) {
-    // Return existing pending transaction info if it has a preference
-    if (existingPending.mpPreferenceId) {
-      const paymentService = getPaymentService();
-      const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-
-      // Create a new link since we can't recover the old one
-      const paymentLink = await paymentService.createPaymentLink({
-        title: "AI Premium — Bilardeando",
-        description: "Desbloquear asistente AI premium",
-        amountArs: AI_UNLOCK_PRICE_ARS,
-        externalReference: String(existingPending.id),
-        backUrls: {
-          success: `${baseUrl}/wallet?status=success`,
-          failure: `${baseUrl}/wallet?status=failure`,
-          pending: `${baseUrl}/wallet?status=pending`,
-        },
-      });
-
-      await prisma.transaction.update({
-        where: { id: existingPending.id },
-        data: { mpPreferenceId: paymentLink.preferenceId },
-      });
-
-      return {
-        transactionId: existingPending.id,
-        preferenceId: paymentLink.preferenceId,
-        initPoint: paymentLink.initPoint,
-        amountArs: AI_UNLOCK_PRICE_ARS,
-      };
-    }
+  if (user.realBalance < AI_UNLOCK_PRICE_ARS) {
+    throw new Error(
+      `Saldo insuficiente. Necesitás $${AI_UNLOCK_PRICE_ARS.toLocaleString("es-AR")} ARS para AI Premium`,
+    );
   }
 
-  const transaction = await prisma.transaction.create({
-    data: {
-      type: TransactionType.AI_UNLOCK,
-      status: TransactionStatus.PENDING,
-      amountArs: AI_UNLOCK_PRICE_ARS,
-      description: "Desbloqueo AI Premium",
-      userId,
-    },
-  });
-
-  const paymentService = getPaymentService();
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-
-  const paymentLink = await paymentService.createPaymentLink({
-    title: "AI Premium — Bilardeando",
-    description: "Desbloquear asistente AI premium",
-    amountArs: AI_UNLOCK_PRICE_ARS,
-    externalReference: String(transaction.id),
-    backUrls: {
-      success: `${baseUrl}/wallet?status=success`,
-      failure: `${baseUrl}/wallet?status=failure`,
-      pending: `${baseUrl}/wallet?status=pending`,
-    },
-  });
-
-  await prisma.transaction.update({
-    where: { id: transaction.id },
-    data: { mpPreferenceId: paymentLink.preferenceId },
-  });
+  // Create approved transaction, debit balance, unlock AI — all in one tx
+  const [transaction] = await prisma.$transaction([
+    prisma.transaction.create({
+      data: {
+        type: TransactionType.AI_UNLOCK,
+        status: TransactionStatus.APPROVED,
+        amountArs: AI_UNLOCK_PRICE_ARS,
+        description: "Desbloqueo AI Premium",
+        userId,
+      },
+    }),
+    prisma.user.update({
+      where: { id: userId },
+      data: {
+        realBalance: { decrement: AI_UNLOCK_PRICE_ARS },
+        aiUnlocked: true,
+      },
+    }),
+  ]);
 
   return {
     transactionId: transaction.id,
-    preferenceId: paymentLink.preferenceId,
-    initPoint: paymentLink.initPoint,
     amountArs: AI_UNLOCK_PRICE_ARS,
+    unlocked: true,
   };
 }
 

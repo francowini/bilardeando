@@ -2,15 +2,22 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
 
+// Demo password for all test users
+const DEMO_PASSWORD = "demo123";
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: "Demo",
+      name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
+        password: { label: "Contraseña", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email) return null;
+        if (!credentials?.email || !credentials?.password) return null;
+
+        // Validate password (demo: all users share "demo123")
+        if (credentials.password !== DEMO_PASSWORD) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },

@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/db";
 import { TransactionType, TransactionStatus } from "@/generated/prisma/client";
-import { getPaymentService } from "@/services/payment.service";
-import { checkFeeWaiver } from "@/services/wallet.service";
-
-const FEE_RATE = 0.03; // 3%
 
 export interface BudgetTier {
   id: string;
@@ -19,11 +15,9 @@ const TIERS: BudgetTier[] = [
 
 export interface BudgetPurchaseResult {
   transactionId: number;
-  preferenceId: string;
-  initPoint: string;
   tier: BudgetTier;
-  fee: number;
-  totalArs: number;
+  newBudget: number;
+  newBalance: number;
 }
 
 /**
@@ -34,8 +28,8 @@ export function getTiers(): BudgetTier[] {
 }
 
 /**
- * Create a budget purchase transaction and return an MP payment link.
- * Applies 3% fee unless user balance >= $20k ARS.
+ * Purchase virtual budget directly from real balance (no MP).
+ * Deducts from realBalance, credits virtualBudget immediately.
  */
 export async function purchaseBudget(
   userId: string,
@@ -46,92 +40,46 @@ export async function purchaseBudget(
     throw new Error("Tier no válido");
   }
 
-  const feeWaived = await checkFeeWaiver(userId);
-  const fee = feeWaived
-    ? 0
-    : Math.round(tier.priceArs * FEE_RATE * 100) / 100;
-  const totalArs = tier.priceArs + fee;
-
-  const transaction = await prisma.transaction.create({
-    data: {
-      type: TransactionType.BUDGET_PURCHASE,
-      status: TransactionStatus.PENDING,
-      amountArs: tier.priceArs,
-      description: fee > 0
-        ? `Compra $${tier.virtualAmount}M presupuesto ($${tier.priceArs} + $${fee} comisión)`
-        : `Compra $${tier.virtualAmount}M presupuesto (sin comisión)`,
-      userId,
-    },
+  // Check user has enough balance
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { realBalance: true },
   });
 
-  const paymentService = getPaymentService();
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-
-  const paymentLink = await paymentService.createPaymentLink({
-    title: `Presupuesto +$${tier.virtualAmount}M — Bilardeando`,
-    description: `Compra $${tier.virtualAmount}M de presupuesto virtual`,
-    amountArs: totalArs,
-    externalReference: String(transaction.id),
-    backUrls: {
-      success: `${baseUrl}/wallet?status=success`,
-      failure: `${baseUrl}/wallet?status=failure`,
-      pending: `${baseUrl}/wallet?status=pending`,
-    },
-  });
-
-  await prisma.transaction.update({
-    where: { id: transaction.id },
-    data: { mpPreferenceId: paymentLink.preferenceId },
-  });
-
-  return {
-    transactionId: transaction.id,
-    preferenceId: paymentLink.preferenceId,
-    initPoint: paymentLink.initPoint,
-    tier,
-    fee,
-    totalArs,
-  };
-}
-
-/**
- * Credit virtual budget after webhook confirmation (BUDGET_PURCHASE).
- * Idempotent: only credits if transaction is still PENDING.
- */
-export async function creditBudget(
-  userId: string,
-  transactionId: number,
-): Promise<void> {
-  const transaction = await prisma.transaction.findUnique({
-    where: { id: transactionId },
-  });
-
-  if (!transaction || transaction.userId !== userId) {
-    throw new Error("Transaction not found");
+  if (!user) {
+    throw new Error("Usuario no encontrado");
   }
 
-  if (transaction.status === TransactionStatus.APPROVED) {
-    return; // already credited — idempotent
+  if (user.realBalance < tier.priceArs) {
+    throw new Error(
+      `Saldo insuficiente. Necesitás $${tier.priceArs.toLocaleString("es-AR")} ARS, tenés $${user.realBalance.toLocaleString("es-AR")} ARS`,
+    );
   }
 
-  if (transaction.type !== TransactionType.BUDGET_PURCHASE) {
-    throw new Error("Transaction is not a budget purchase");
-  }
-
-  // Find the tier by matching the amount
-  const tier = TIERS.find((t) => t.priceArs === transaction.amountArs);
-  if (!tier) {
-    throw new Error("Could not determine tier for transaction amount");
-  }
-
-  await prisma.$transaction([
-    prisma.transaction.update({
-      where: { id: transactionId },
-      data: { status: TransactionStatus.APPROVED },
+  // Create approved transaction, debit balance, credit budget
+  const [transaction, updatedUser] = await prisma.$transaction([
+    prisma.transaction.create({
+      data: {
+        type: TransactionType.BUDGET_PURCHASE,
+        status: TransactionStatus.APPROVED,
+        amountArs: tier.priceArs,
+        description: `Compra $${tier.virtualAmount}M presupuesto virtual`,
+        userId,
+      },
     }),
     prisma.user.update({
       where: { id: userId },
-      data: { virtualBudget: { increment: tier.virtualAmount } },
+      data: {
+        realBalance: { decrement: tier.priceArs },
+        virtualBudget: { increment: tier.virtualAmount },
+      },
     }),
   ]);
+
+  return {
+    transactionId: transaction.id,
+    tier,
+    newBudget: updatedUser.virtualBudget,
+    newBalance: updatedUser.realBalance,
+  };
 }

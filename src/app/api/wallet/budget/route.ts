@@ -21,7 +21,7 @@ export async function GET() {
     return successResponse({
       tiers,
       feeWaived,
-      feeRate: feeWaived ? 0 : 0.03,
+      feeRate: feeWaived ? 0 : 0,
     });
   } catch (error) {
     const message =
@@ -31,7 +31,7 @@ export async function GET() {
 }
 
 /**
- * POST /api/wallet/budget — body: { tierId: string } — creates budget purchase, returns MP link
+ * POST /api/wallet/budget — body: { tierId: string } — purchases budget directly from balance
  */
 export async function POST(request: NextRequest) {
   const auth = await getAuthOrError();
