@@ -3,9 +3,9 @@ import { SessionProvider } from "@/components/providers/session-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bilardeando — Fantasy Football Argentina",
+  title: "Bilardeando",
   description:
-    "Fantasy football platform for Argentine Liga Profesional. Build your squad, earn points, compete with friends.",
+    "Armá tu equipo, competí con amigos y demostrá que sabés de fútbol.",
 };
 
 export default function RootLayout({

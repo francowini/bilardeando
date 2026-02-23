@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { Trophy, LogIn } from "lucide-react";
+import { Wine, LogIn } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -35,7 +35,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header bar */}
       <div className="header-bar text-lg px-4 py-3">
-        BILARDEANDO — Fantasy Football Argentina
+        <span className="flex items-center gap-2">
+          <Wine className="w-6 h-6 text-espn-gold" />
+          BILARDEANDO
+        </span>
       </div>
 
       {/* Centered login card */}
@@ -45,7 +48,7 @@ export default function LoginPage() {
             Iniciar Sesión
           </div>
           <div className="card-retro-body space-y-6 py-8">
-            <Trophy className="w-16 h-16 text-espn-gold mx-auto" />
+            <Wine className="w-16 h-16 text-espn-gold mx-auto" />
             <h1 className="font-heading text-3xl font-bold text-espn-green uppercase text-center">
               Bilardeando
             </h1>

@@ -1,12 +1,15 @@
 import Link from "next/link";
-import { Trophy, Users, Zap, Shield } from "lucide-react";
+import { Wine, Users, Zap, Shield } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header bar */}
       <div className="header-bar text-lg px-4 py-3 flex items-center justify-between">
-        <span>BILARDEANDO — Fantasy Football Argentina</span>
+        <span className="flex items-center gap-2">
+          <Wine className="w-6 h-6 text-espn-gold" />
+          BILARDEANDO
+        </span>
         <Link href="/login" className="btn-retro-accent text-xs py-1 px-3">
           Ingresar
         </Link>
@@ -19,6 +22,7 @@ export default function Home() {
             Armá tu equipo. Competí con amigos. Demostrá que sabés de fútbol.
           </div>
           <div className="card-retro-body space-y-6 py-8 text-center">
+            <Wine className="w-20 h-20 text-espn-gold mx-auto" />
             <h1 className="font-heading text-5xl font-bold text-espn-green uppercase tracking-tight">
               Bilardeando
             </h1>
@@ -38,7 +42,7 @@ export default function Home() {
         {/* Features grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           <FeatureCard
-            icon={<Trophy className="w-8 h-8 text-espn-gold" />}
+            icon={<Wine className="w-8 h-8 text-espn-gold" />}
             title="Torneo General"
             description="Leaderboard global gratuito. Acumulá puntos fecha a fecha y demostrá quién sabe más."
           />
@@ -99,7 +103,7 @@ export default function Home() {
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground mt-8 mb-4">
-          Bilardeando &copy; 2026 — Fantasy Football Argentina
+          Bilardeando &copy; 2026
         </div>
       </main>
     </div>
